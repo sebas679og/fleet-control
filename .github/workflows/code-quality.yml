@@ -15,6 +15,7 @@ jobs:
           - ms-alerts
           - ms-auth
           - ms-dashboard
+          - ms-drivers
       max-parallel: 1
 
     defaults:

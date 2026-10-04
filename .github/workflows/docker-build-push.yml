@@ -27,6 +27,10 @@ jobs:
             context: ms-dashboard
             description: The `ms-dashboard` service aggregates data from the other microservices into an executive fleet summary and into time series ready to be plotted. It has no database, it stores responses in a Caffeine cache with a validity of **60 seconds**, using the endpoint and all its parameters as the cache key.
 
+          - name: fleet-control-drivers
+            context: ms-drivers
+            description: The `ms-drivers` service manages fleet drivers, their driving license and their status. `ms-routes` queries it to check that a driver can be assigned to a route, and `ms-alerts` queries it to detect licenses that are about to expire.
+
       max-parallel: 1
 
     permissions:
