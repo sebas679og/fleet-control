@@ -18,9 +18,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
             description =
                 """
                 REST API for fleet alerts and their evaluation rules.
-                A scheduled evaluator (every 15 minutes) raises alerts for upcoming or 
+                A scheduled evaluator (every 15 minutes) raises alerts for upcoming or
                 overdue maintenance, \
-                licenses about to expire or expired, and abnormal fuel consumption, 
+                licenses about to expire or expired, and abnormal fuel consumption,
                 deduplicating them with a \
                 unique key. Alerts move from `OPEN` to `ACKNOWLEDGED` or `RESOLVED`.
                 Editing rules and triggering manual evaluations is reserved for `ADMIN`.
@@ -44,10 +44,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
     name = "BearerAuth",
     description =
         """
-                JWT issued by `ms-auth` (HS256, valid for 1 hour) 
+                JWT issued by `ms-auth` (HS256, valid for 1 hour)
                 and sent in the `Authorization` header \
                 using the Bearer scheme: `Authorization: Bearer <token>`.
-                The token carries the claims `sub` (user id), 
+                The token carries the claims `sub` (user id),
                 `username` and `role` (`MANAGER` or `ADMIN`).
                 Obtain it with `POST /api/auth/login`.
                 """,
@@ -58,11 +58,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
     name = "InternalApiKey",
     description =
         """
-                Shared key for service-to-service calls and 
+                Shared key for service-to-service calls and
                 scheduled tasks, sent in the `X-Internal-Key` \
-                header (value of `INTERNAL_API_KEY`). A call with a 
+                header (value of `INTERNAL_API_KEY`). A call with a
                 valid key is handled with `MANAGER` \
-                permissions. It only applies to endpoints marked as 
+                permissions. It only applies to endpoints marked as
                 internal calls. `ms-gateway` removes \
                 this header from every external request.
                 """,
