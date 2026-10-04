@@ -11,6 +11,7 @@ jobs:
       matrix:
         service:
           - ms-alerts
+          - ms-auth
       max-parallel: 1
 
     defaults:

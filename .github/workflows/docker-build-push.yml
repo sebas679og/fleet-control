@@ -18,6 +18,11 @@ jobs:
           - name: fleet-control-alerts
             context: ms-alerts
             description: The `ms-alerts` service detects situations that need attention and turns them into alerts, upcoming or overdue maintenance, driver licenses about to expire or already expired, and abnormal fuel consumption.
+
+          - name: fleet-control-auth
+            context: ms-auth
+            description: The `ms-auth` service manages user registration and authentication. It issues JWT tokens (HS256, valid for 1 hour) that all domain microservices validate on every protected request. The token carries the claims `sub` (user id), `username` and `role`.
+
       max-parallel: 1
 
     permissions:
