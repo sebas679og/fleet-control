@@ -31,6 +31,10 @@ jobs:
             context: ms-drivers
             description: The `ms-drivers` service manages fleet drivers, their driving license and their status. `ms-routes` queries it to check that a driver can be assigned to a route, and `ms-alerts` queries it to detect licenses that are about to expire.
 
+          - name: fleet-control-fuel
+            context: ms-fuel
+            description: The `ms-fuel` service records fleet refuels and computes the consumption of each vehicle. It consumes `ms-vehicles` to validate the vehicle, get its fuel type and tank capacity, and enrich responses with the plate. It is the origin of the **liters**, **cost** and **consumption** metrics.
+
       max-parallel: 1
 
     permissions:
