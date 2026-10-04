@@ -1,28 +1,40 @@
-#name: Code Quality
-#
-#on:
-#  pull_request:
-#  workflow_dispatch:
-#
-#jobs:
-#  code-quality:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
-#
-#      - name: Set up Java 25
-#        uses: actions/setup-java@v4
-#        with:
-#          java-version: "25"
-#          distribution: "temurin"
-#          cache: maven
-#
-#      - name: Spotless - Check format
-#        run: mvn spotless:check
-#
-#      - name: Checkstyle - Check style
-#        run: mvn checkstyle:check
-#
-#      - name: PMD - Check for code issues
-#        run: mvn pmd:check
+name: Code Quality for Fleet Control
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+
+  code-quality:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service:
+          - ms-alerts
+      max-parallel: 1
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.service }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: "25"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Spotless — check format
+        run: mvn spotless:check
+
+      - name: Checkstyle — check style
+        run: mvn checkstyle:check
+
+      - name: PMD — check for code issues
+        run: mvn pmd:check

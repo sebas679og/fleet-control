@@ -315,7 +315,7 @@
 					</rulesets>
 					<failOnViolation>true</failOnViolation>
 					<printFailingErrors>true</printFailingErrors>
-					<targetJdk>21</targetJdk>
+					<targetJdk>25</targetJdk>
 					<excludeRoots>
 						<excludeRoot>target/generated-sources</excludeRoot>
 					</excludeRoots>
