@@ -23,6 +23,10 @@ jobs:
             context: ms-auth
             description: The `ms-auth` service manages user registration and authentication. It issues JWT tokens (HS256, valid for 1 hour) that all domain microservices validate on every protected request. The token carries the claims `sub` (user id), `username` and `role`.
 
+          - name: fleet-control-dashboard
+            context: ms-dashboard
+            description: The `ms-dashboard` service aggregates data from the other microservices into an executive fleet summary and into time series ready to be plotted. It has no database, it stores responses in a Caffeine cache with a validity of **60 seconds**, using the endpoint and all its parameters as the cache key.
+
       max-parallel: 1
 
     permissions:

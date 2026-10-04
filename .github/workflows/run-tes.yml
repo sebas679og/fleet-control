@@ -12,6 +12,7 @@ jobs:
         service:
           - ms-alerts
           - ms-auth
+          - ms-dashboard
       max-parallel: 1
 
     defaults:

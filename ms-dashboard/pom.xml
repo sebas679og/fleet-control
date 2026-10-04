@@ -115,7 +115,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>ms-dashboards</finalName>
+		<finalName>ms-dashboard</finalName>
 
 		<plugins>
 			<plugin>

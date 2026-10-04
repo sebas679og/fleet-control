@@ -88,6 +88,26 @@ services:
     networks:
       - fleet-control-network
 
+  ms-dashboard:
+    build:
+      context: ./ms-dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FLEET_CONTROL_LEVEL_LOGIN: ${FLEET_CONTROL_LEVEL_LOGIN}
+      SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8089/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    networks:
+      - fleet-control-network
+
 networks:
   fleet-control-network:
     driver: bridge
