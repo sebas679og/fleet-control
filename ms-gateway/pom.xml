@@ -8,9 +8,9 @@
 		<version>4.1.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.fleet.control</groupId>
+	<groupId>com.fleet.control.gateway</groupId>
 	<artifactId>ms-gateway</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name/>
 	<description/>
 	<url/>
