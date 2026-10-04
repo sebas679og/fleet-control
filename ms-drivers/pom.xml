@@ -148,7 +148,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>ms-alerts</finalName>
+		<finalName>ms-drivers</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
