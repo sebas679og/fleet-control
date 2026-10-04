@@ -20,6 +20,7 @@ jobs:
           - ms-gateway
           - ms-maintenance
           - ms-routes
+          - ms-vehicles
       max-parallel: 1
 
     defaults:
