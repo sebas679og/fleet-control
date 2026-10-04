@@ -127,7 +127,35 @@ services:
       FLEET_CONTROL_JPA_SHOW_SQL: ${FLEET_CONTROL_JPA_SHOW_SQL}
       SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1" ]
+      test: [ "CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    networks:
+      - fleet-control-network
+
+  ms-fuel:
+    build:
+      context: ./ms-fuel
+      dockerfile: Dockerfile
+    ports:
+      - "8087:8087"
+    depends_on:
+      postgres-datasource:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FLEET_CONTROL_LEVEL_LOGIN: ${FLEET_CONTROL_LEVEL_LOGIN}
+      FLEET_CONTROL_DATASOURCE_URL_FUEL: jdbc:postgresql://postgres-datasource:5432/${FLEET_CONTROL_DATASOURCE_DB_FUEL}
+      FLEET_CONTROL_DATASOURCE_USERNAME: ${FLEET_CONTROL_DATASOURCE_USERNAME}
+      FLEET_CONTROL_DATASOURCE_PASSWORD: ${FLEET_CONTROL_DATASOURCE_PASSWORD}
+      FLEET_CONTROL_JPA_DDL: ${FLEET_CONTROL_JPA_DDL}
+      FLEET_CONTROL_JPA_SHOW_SQL: ${FLEET_CONTROL_JPA_SHOW_SQL}
+      SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8087/actuator/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
