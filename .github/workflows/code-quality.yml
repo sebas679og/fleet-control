@@ -19,6 +19,7 @@ jobs:
           - ms-fuel
           - ms-gateway
           - ms-maintenance
+          - ms-routes
       max-parallel: 1
 
     defaults:

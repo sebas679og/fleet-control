@@ -43,6 +43,10 @@ jobs:
             context: ms-maintenance
             description: The `ms-maintenance` service manages scheduled maintenance, recurring plans per vehicle and the work orders derived from them.
 
+          - name: fleet-control-routes
+            context: ms-routes
+            description: The `ms-routes` service manages fleet routes, planning, execution and history. It consumes `ms-vehicles` and `ms-drivers` to validate assignments and to update the vehicle status and odometer when a route starts or ends. It is the origin of the **distance traveled** metric.
+
       max-parallel: 1
 
     permissions:
