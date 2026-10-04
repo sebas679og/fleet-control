@@ -39,6 +39,10 @@ jobs:
             context: ms-gateway
             description: The `ms-gateway` service is the single entry point to FleetControl. It routes each request to the right microservice, applies global rate limiting, generates the `X-Request-Id` header when it is missing and strips `X-Internal-Key` from every external request so that no client can impersonate an internal service.
 
+          - name: fleet-control-maintenance
+            context: ms-maintenance
+            description: The `ms-maintenance` service manages scheduled maintenance, recurring plans per vehicle and the work orders derived from them.
+
       max-parallel: 1
 
     permissions:

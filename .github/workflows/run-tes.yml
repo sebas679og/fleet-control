@@ -16,6 +16,7 @@ jobs:
           - ms-drivers
           - ms-fuel
           - ms-gateway
+          - ms-maintenance
       max-parallel: 1
 
     defaults:
