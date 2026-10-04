@@ -24,11 +24,11 @@ ARG IMAGE_NAME="Fleet Control - MS Maintenance"
 ARG UID=1010
 ARG GID=1010
 
-LABEL group2.sports-pulse.build-date=$BUILD_DATE \
-      group2.sports-pulse.name=$IMAGE_NAME \
-      group2.sports-pulse.description=$IMAGE_DESCRIPTION \
-      group2.sports-pulse.base.image="eclipse-temurin:25-jre" \
-      group2.sports-pulse.version=$BUILD_VERSION \
+LABEL group2.fleet-control.build-date=$BUILD_DATE \
+      group2.fleet-control.name=$IMAGE_NAME \
+      group2.fleet-control.description=$IMAGE_DESCRIPTION \
+      group2.fleet-control.base.image="eclipse-temurin:25-jre" \
+      group2.fleet-control.version=$BUILD_VERSION \
       maintainer="group2"
 
 RUN groupadd -g "${GID}" group2 \
