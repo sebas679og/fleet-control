@@ -17,6 +17,7 @@ jobs:
           - ms-dashboard
           - ms-drivers
           - ms-fuel
+          - ms-gateway
       max-parallel: 1
 
     defaults:

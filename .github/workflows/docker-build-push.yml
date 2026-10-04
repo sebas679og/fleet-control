@@ -35,6 +35,10 @@ jobs:
             context: ms-fuel
             description: The `ms-fuel` service records fleet refuels and computes the consumption of each vehicle. It consumes `ms-vehicles` to validate the vehicle, get its fuel type and tank capacity, and enrich responses with the plate. It is the origin of the **liters**, **cost** and **consumption** metrics.
 
+          - name: fleet-control-gateway
+            context: ms-gateway
+            description: The `ms-gateway` service is the single entry point to FleetControl. It routes each request to the right microservice, applies global rate limiting, generates the `X-Request-Id` header when it is missing and strips `X-Internal-Key` from every external request so that no client can impersonate an internal service.
+
       max-parallel: 1
 
     permissions:
