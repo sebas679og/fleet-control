@@ -23,79 +23,79 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @RequestMapping(ApiPaths.AUTH_BASE)
-@Tag(name = "Auth", description = "Operaciones de autenticación y gestión de usuarios")
+@Tag(name = "Auth", description = "Authentication and user management operations")
 public interface AuthApi {
 
   @Operation(
-      summary = "Registro de usuario",
+      summary = "User registration",
       description =
-          "Crea un usuario nuevo en el sistema. Valida los datos, "
-              + "verifica que el email no esté registrado, encripta la contraseña con BCrypt, "
-              + "guarda en la base de datos y devuelve los datos del usuario creado.")
+          "Creates a new user in the system. Validates the input, "
+              + "verifies that the email is not already registered, encrypts the password with BCrypt, "
+              + "persists it to the database and returns the created user data.")
   @ApiResponses(
       value = {
         @ApiResponse(
             responseCode = "201",
-            description = "Usuario creado exitosamente",
-            content = @Content(schema = @Schema(implementation = TokenResponse.class))),
+            description = "User created successfully",
+            content = @Content(schema = @Schema(implementation = RegisterResponse.class))),
         @ApiResponse(
             responseCode = "400",
-            description = "Datos inválidos o la contraseña no cumple los requisitos",
+            description = "Invalid input or password does not meet the requirements",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
         @ApiResponse(
             responseCode = "409",
-            description = "El correo electrónico ya está registrado",
+            description = "The email address is already registered",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
       })
   @PostMapping(ApiPaths.REGISTER)
   ResponseEntity<RegisterResponse> createUser(@Valid @RequestBody RegisterRequest registerRequest);
 
   @Operation(
-      summary = "Inicio de sesión",
+      summary = "Sign in",
       description =
-          "Autentica un usuario existente usando email y contraseña. "
-              + "Spring Security verifica las credenciales contra la base de datos "
-              + "y si son correctas, genera un token JWT para usar en adelante.")
+          "Authenticates an existing user with email and password. "
+              + "Spring Security verifies the credentials against the database "
+              + "and, when valid, issues a JWT for subsequent requests.")
   @ApiResponses(
       value = {
         @ApiResponse(
             responseCode = "200",
-            description = "Inicio de sesión exitoso",
+            description = "Sign-in successful",
             content = @Content(schema = @Schema(implementation = TokenResponse.class))),
         @ApiResponse(
             responseCode = "400",
-            description = "Datos inválidos o faltantes",
+            description = "Invalid or missing input",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
         @ApiResponse(
             responseCode = "401",
-            description = "Credenciales inválidas (email o contraseña incorrectos)",
+            description = "Invalid credentials (incorrect email or password)",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
       })
   @PostMapping(ApiPaths.LOGIN)
   ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest loginRequest);
 
   @Operation(
-      summary = "Validar token JWT",
+      summary = "Validate JWT",
       description =
-          "Verifica si un token JWT es válido y no ha expirado.\n\n"
-              + "¿Cómo usar este endpoint?\n"
-              + "1. Obtén un token haciendo login en POST /api/auth/login\n"
-              + "2. Haz clic en el botón Authorize (arriba a la derecha) y pega el token en el formato: Bearer <token>\n"
-              + "3. Ahora el header Authorization se enviará automáticamente en este endpoint")
+          "Verifies whether a JWT is valid and not expired.\n\n"
+              + "How to use this endpoint:\n"
+              + "1. Obtain a token via POST /api/auth/login\n"
+              + "2. Click the Authorize button (top right) and paste the token as: Bearer <token>\n"
+              + "3. The Authorization header will then be sent automatically with this endpoint")
   @ApiResponses(
       value = {
         @ApiResponse(
             responseCode = "200",
-            description = "Token válido — devuelve los datos del usuario (userId, username, role)",
+            description = "Valid token — returns the user data (userId, username, role)",
             content = @Content(schema = @Schema(implementation = TokenPayload.class))),
         @ApiResponse(
             responseCode = "401",
             description =
-                "Token inválido, expirado o con firma incorrecta — devuelve el error (TOKEN_EXPIRED / INVALID_TOKEN)",
+                "Invalid token, expired, or with an incorrect signature — returns the error (TOKEN_EXPIRED / INVALID_TOKEN)",
             content = @Content(schema = @Schema(implementation = TokenPayload.class))),
         @ApiResponse(
             responseCode = "400",
-            description = "Header Authorization faltante (es requerido)",
+            description = "Missing Authorization header (required)",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
       })
   @SecurityRequirement(name = "bearerAuth")

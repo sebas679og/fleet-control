@@ -13,4 +13,5 @@ public record TokenResponse(
     @Schema(description = "Token type", example = "Bearer") String tokenType,
     @Schema(description = "Token lifetime in seconds", example = "3600") long expiresIn,
     @Schema(description = "Authenticated user ID", example = "550e8400-e29b-41d4-a716-446655440000")
-        String userId) {}
+        String userId,
+    @Schema(description = "User role", example = "MANAGER") String role) {}

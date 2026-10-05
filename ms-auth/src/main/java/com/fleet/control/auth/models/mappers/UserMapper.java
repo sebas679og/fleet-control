@@ -20,5 +20,6 @@ public interface UserMapper {
   @Mapping(target = "tokenType", constant = "Bearer")
   @Mapping(target = "expiresIn", expression = "java(3600L)")
   @Mapping(target = "userId", source = "userId")
-  TokenResponse toTokenResponse(String token, String userId);
+  @Mapping(target = "role", source = "role")
+  TokenResponse toTokenResponse(String token, String userId, String role);
 }

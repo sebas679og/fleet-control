@@ -27,14 +27,13 @@ public class JwtServiceImpl implements JwtService {
   private final long expirationTime;
 
   public JwtServiceImpl(
-      @Value("${jwt.secret}") String secret,
-      @Value("${jwt.access-expiration}") long accessExpiration) {
+      @Value("${jwt.secret}") String secret, @Value("${jwt.expiration}") long expiration) {
     if (secret.getBytes().length < 32) {
       throw new IllegalArgumentException(
           "La clave secreta de JWT debe tener al menos 32 caracteres.");
     }
     this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-    this.expirationTime = accessExpiration;
+    this.expirationTime = expiration;
   }
 
   @Override
@@ -64,6 +63,7 @@ public class JwtServiceImpl implements JwtService {
         .tokenType(JwtConstants.TOKEN_TYPE_BEARER)
         .expiresIn(TimeUnit.MILLISECONDS.toSeconds(expirationTime))
         .userId(userId)
+        .role(normalizedRole)
         .build();
   }
 
