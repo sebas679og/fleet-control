@@ -48,7 +48,7 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(ApiPaths.PUBLIC_AUTH_ENDPOINTS)
                     .permitAll()
-                    .requestMatchers("/actuator/**")
+                    .requestMatchers("/actuator/**", "/error")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

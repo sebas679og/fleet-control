@@ -12,18 +12,28 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** Guards internal service-to-service endpoints with a shared key. */
+/**
+ * Guards internal service-to-service endpoints with a shared key.
+ *
+ * <p>Fail-closed: a missing or wrong key answers 401 through the security error handler without
+ * continuing the chain, so a valid JWT alone can never bypass the internal gate. Never throws.
+ */
 @Component
 public class InternalKeyAuthFilter extends OncePerRequestFilter {
 
+  private final SecurityErrorHandler securityErrorHandler;
   private final String internalApiKey;
 
   /**
-   * Creates the filter with the configured shared key.
+   * Creates the filter with the error handler and the configured shared key.
    *
+   * @param securityErrorHandler writes the 401 contract for rejected requests
    * @param internalApiKey the expected {@code X-Internal-Key} value
    */
-  public InternalKeyAuthFilter(@Value("${internal.api-key}") String internalApiKey) {
+  public InternalKeyAuthFilter(
+      SecurityErrorHandler securityErrorHandler,
+      @Value("${internal.api-key}") String internalApiKey) {
+    this.securityErrorHandler = securityErrorHandler;
     this.internalApiKey = internalApiKey;
   }
 
@@ -39,10 +49,11 @@ public class InternalKeyAuthFilter extends OncePerRequestFilter {
       return;
     }
     String provided = request.getHeader(HeaderConstants.INTERNAL_KEY);
-    if (internalApiKey != null && !internalApiKey.isBlank() && internalApiKey.equals(provided)) {
-      filterChain.doFilter(request, response);
+    if (internalApiKey == null || internalApiKey.isBlank() || !internalApiKey.equals(provided)) {
+      securityErrorHandler.commence(
+          request, response, new BadCredentialsException("Invalid internal key"));
       return;
     }
-    throw new BadCredentialsException("Invalid internal key");
+    filterChain.doFilter(request, response);
   }
 }
