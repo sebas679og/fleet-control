@@ -1,58 +1,101 @@
-#name: Docker Build & Push
-#
-#on:
-#  push:
-#    branches: [main]
-#
-#env:
-#  REGISTRY: ghcr.io
-#  IMAGE_PREFIX: ${{ github.repository_owner }}
-#
-#jobs:
-#  build-and-push:
-#    runs-on: ubuntu-latest
-#
-#    permissions:
-#      contents: read
-#      packages: write
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v6
-#
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@v3
-#
-#      - name: Login to GitHub Container Registry
-#        uses: docker/login-action@v3
-#        with:
-#          registry: ${{ env.REGISTRY }}
-#          username: ${{ github.actor }}
-#          password: ${{ secrets.GITHUB_TOKEN }}
-#
-#      - name: Get version from pom.xml
-#        id: vars
-#        run: |
-#          chmod +x mvnw 2>/dev/null || true
-#          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout 2>/dev/null)
-#          if [ -z "$VERSION" ]; then
-#            echo "ERROR: Could not extract version from pom.xml"
-#            exit 1
-#          fi
-#          echo "version=$VERSION" >> $GITHUB_OUTPUT
-#          echo "Detected version: $VERSION"
-#
-#      - name: Build & push --name
-#        uses: docker/build-push-action@v6
-#        with:
-#          file: Dockerfile
-#          push: true
-#          tags: |
-#            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/--name:latest
-#            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/--name:${{ steps.vars.outputs.version }}
-#          cache-from: type=gha
-#          cache-to: type=gha,mode=max
-#          build-args: |
-#            BUILD_DATE=${{ github.event.head_commit.timestamp }}
-#            BUILD_VERSION=${{ steps.vars.outputs.version }}
-#            IMAGE_DESCRIPTION="Description-here"
+name: Docker Build & Push
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service:
+          - name: fleet-control-alerts
+            context: ms-alerts
+            description: The `ms-alerts` service detects situations that need attention and turns them into alerts, upcoming or overdue maintenance, driver licenses about to expire or already expired, and abnormal fuel consumption.
+
+          - name: fleet-control-auth
+            context: ms-auth
+            description: The `ms-auth` service manages user registration and authentication. It issues JWT tokens (HS256, valid for 1 hour) that all domain microservices validate on every protected request. The token carries the claims `sub` (user id), `username` and `role`.
+
+          - name: fleet-control-dashboard
+            context: ms-dashboard
+            description: The `ms-dashboard` service aggregates data from the other microservices into an executive fleet summary and into time series ready to be plotted. It has no database, it stores responses in a Caffeine cache with a validity of **60 seconds**, using the endpoint and all its parameters as the cache key.
+
+          - name: fleet-control-drivers
+            context: ms-drivers
+            description: The `ms-drivers` service manages fleet drivers, their driving license and their status. `ms-routes` queries it to check that a driver can be assigned to a route, and `ms-alerts` queries it to detect licenses that are about to expire.
+
+          - name: fleet-control-fuel
+            context: ms-fuel
+            description: The `ms-fuel` service records fleet refuels and computes the consumption of each vehicle. It consumes `ms-vehicles` to validate the vehicle, get its fuel type and tank capacity, and enrich responses with the plate. It is the origin of the **liters**, **cost** and **consumption** metrics.
+
+          - name: fleet-control-gateway
+            context: ms-gateway
+            description: The `ms-gateway` service is the single entry point to FleetControl. It routes each request to the right microservice, applies global rate limiting, generates the `X-Request-Id` header when it is missing and strips `X-Internal-Key` from every external request so that no client can impersonate an internal service.
+
+          - name: fleet-control-maintenance
+            context: ms-maintenance
+            description: The `ms-maintenance` service manages scheduled maintenance, recurring plans per vehicle and the work orders derived from them.
+
+          - name: fleet-control-routes
+            context: ms-routes
+            description: The `ms-routes` service manages fleet routes, planning, execution and history. It consumes `ms-vehicles` and `ms-drivers` to validate assignments and to update the vehicle status and odometer when a route starts or ends. It is the origin of the **distance traveled** metric.
+
+          - name: fleet-control-vehicles
+            context: ms-vehicle
+            description: The `ms-vehicles` service keeps the fleet inventory with each vehicle's operational status and odometer.
+
+      max-parallel: 1
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get version from pom.xml
+        id: vars
+        working-directory: ${{ matrix.service.context }}
+        run: |
+          chmod +x mvnw 2>/dev/null || true
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout 2>/dev/null)
+          if [ -z "$VERSION" ]; then
+            echo "ERROR: Could not extract version from pom.xml"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
+      - name: Build & push ${{ matrix.service.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.context }}/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.service.name }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.service.name }}:${{ steps.vars.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            BUILD_VERSION=${{ steps.vars.outputs.version }}
+            IMAGE_DESCRIPTION=${{ matrix.service.description }}
