@@ -3,6 +3,7 @@ package com.fleet.control.auth.models.dto.token.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
+/** JWT issued on successful login. */
 @Builder
 @Schema(description = "JWT authentication token")
 public record TokenResponse(

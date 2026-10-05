@@ -3,6 +3,7 @@ package com.fleet.control.auth.models.dto.token.request;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/** User information extracted from a validated JWT. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "User information extracted from JWT token")
 public record TokenPayload(

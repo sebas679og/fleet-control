@@ -1,5 +1,6 @@
 package com.fleet.control.auth.common.constants;
 
+/** Shared JWT claim names, prefixes and token settings. */
 public class JwtConstants {
 
   private JwtConstants() {}

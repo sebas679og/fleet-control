@@ -6,6 +6,7 @@ import com.fleet.control.auth.models.entities.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+/** Maps between user DTOs and the user entity. */
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 

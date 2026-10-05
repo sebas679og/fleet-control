@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
+/** Credentials required to sign in. */
 @Builder
 @Schema(description = "User login credentials")
 public record LoginRequest(

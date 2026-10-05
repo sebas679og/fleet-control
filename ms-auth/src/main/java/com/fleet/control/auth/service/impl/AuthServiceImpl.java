@@ -29,11 +29,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/** Application service for user registration, login and token validation. */
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-  private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AuthServiceImpl.class);
 
   private final UserEntityRepository userEntityRepository;
   private final PasswordEncoder passwordEncoder;
@@ -41,6 +42,12 @@ public class AuthServiceImpl implements AuthService {
   private final AuthenticationManager authenticationManager;
   private final UserMapper userMapper;
 
+  /**
+   * Registers a new user with the {@code MANAGER} role and a BCrypt password.
+   *
+   * @param registerRequest the registration input
+   * @return the created user data
+   */
   @Override
   @Transactional
   public RegisterResponse createUser(RegisterRequest registerRequest) {
@@ -57,7 +64,9 @@ public class AuthServiceImpl implements AuthService {
     user.setUpdatedAt(Instant.now());
 
     UserEntity saved = userEntityRepository.save(user);
-    log.info("User created: {}", saved.getEmail());
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("User created: {}", saved.getEmail());
+    }
 
     return new RegisterResponse(
         saved.getId().toString(),
@@ -67,6 +76,12 @@ public class AuthServiceImpl implements AuthService {
         saved.getCreatedAt());
   }
 
+  /**
+   * Authenticates a user and issues a JWT valid for one hour.
+   *
+   * @param loginRequest the login credentials
+   * @return the token response with user data
+   */
   @Override
   public TokenResponse login(LoginRequest loginRequest) {
     try {
@@ -77,16 +92,26 @@ public class AuthServiceImpl implements AuthService {
 
       UserEntity user = (UserEntity) authentication.getPrincipal();
 
-      log.info("User logged in: {}", user.getEmail());
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info("User logged in: {}", user.getEmail());
+      }
 
       return jwtService.generateToken(
           user.getEmail(), user.getId().toString(), user.getUsername(), user.getRole().name());
     } catch (BadCredentialsException e) {
-      log.warn("Failed login attempt for email: {}", loginRequest.email());
+      if (LOGGER.isWarnEnabled()) {
+        LOGGER.warn("Failed login attempt for email: {}", loginRequest.email());
+      }
       throw new InvalidCredentialsException(ErrorMessages.INVALID_CREDENTIALS);
     }
   }
 
+  /**
+   * Validates a bearer token and returns the embedded user data.
+   *
+   * @param authHeader the {@code Authorization} header value
+   * @return the token payload when the token is valid
+   */
   @Override
   public TokenPayload validateToken(String authHeader) {
     if (authHeader == null || authHeader.isBlank()) {

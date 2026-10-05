@@ -3,6 +3,7 @@ package com.fleet.control.auth.models.dto.user.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
+/** Data returned after a successful user registration. */
 @Schema(description = "User registration response")
 public record RegisterResponse(
     @Schema(description = "Created user ID", example = "550e8400-e29b-41d4-a716-446655440000")

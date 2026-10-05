@@ -1,5 +1,6 @@
 package com.fleet.control.auth.common.exceptions;
 
+/** Machine-readable identifiers for controlled API errors. */
 public class ErrorCodes {
 
   private ErrorCodes() {}

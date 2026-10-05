@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
+/** Input data required to register a new user. */
 @Builder
 @Schema(description = "User registration data")
 public record RegisterRequest(

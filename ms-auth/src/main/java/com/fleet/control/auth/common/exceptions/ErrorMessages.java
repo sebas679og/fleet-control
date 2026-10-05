@@ -1,5 +1,6 @@
 package com.fleet.control.auth.common.exceptions;
 
+/** Human-readable messages for controlled API errors. */
 public class ErrorMessages {
 
   private ErrorMessages() {}

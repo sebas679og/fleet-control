@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+/** Authentication endpoints: registration, login and token validation. */
 @RequestMapping(ApiPaths.AUTH_BASE)
 @Tag(name = "Auth", description = "Authentication and user management operations")
 public interface AuthApi {
@@ -30,7 +31,8 @@ public interface AuthApi {
       summary = "User registration",
       description =
           "Creates a new user in the system. Validates the input, "
-              + "verifies that the email is not already registered, encrypts the password with BCrypt, "
+              + "verifies that the email is not already registered, "
+              + "encrypts the password with BCrypt, "
               + "persists it to the database and returns the created user data.")
   @ApiResponses(
       value = {
@@ -91,7 +93,8 @@ public interface AuthApi {
         @ApiResponse(
             responseCode = "401",
             description =
-                "Invalid token, expired, or with an incorrect signature — returns the error (TOKEN_EXPIRED / INVALID_TOKEN)",
+                "Invalid token, expired, or with an incorrect signature — "
+                    + "returns the error (TOKEN_EXPIRED / INVALID_TOKEN)",
             content = @Content(schema = @Schema(implementation = TokenPayload.class))),
         @ApiResponse(
             responseCode = "400",

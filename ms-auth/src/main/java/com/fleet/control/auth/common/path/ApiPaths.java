@@ -1,5 +1,6 @@
 package com.fleet.control.auth.common.path;
 
+/** Public route paths of the authentication API. */
 public class ApiPaths {
 
   private ApiPaths() {}

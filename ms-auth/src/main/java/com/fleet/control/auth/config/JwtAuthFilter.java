@@ -21,16 +21,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/** Request filter that authenticates callers from a valid JWT. */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-  private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthFilter.class);
 
   private final JwtService jwtService;
   private final UserDetailsService userDetailsService;
 
   @Override
+  @SuppressWarnings("PMD.AvoidCatchingGenericException") // Intentional: filter must not fail.
   protected void doFilterInternal(
       @NonNull HttpServletRequest request,
       @NonNull HttpServletResponse response,
@@ -49,13 +51,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     try {
       userEmail = jwtService.extractEmail(jwt);
     } catch (Exception e) {
-      log.warn("Token JWT inválido o expirado: {}", e.getMessage());
+      if (LOGGER.isWarnEnabled()) {
+        LOGGER.warn("Invalid or expired JWT: {}", e.getMessage());
+      }
       filterChain.doFilter(request, response);
       return;
     }
 
     if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-      // Cargamos el usuario completo desde la base de datos (incluyendo sus roles)
+      // Load the full user from the database (including roles)
       UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
       if (!jwtService.isExpired(jwt)) {
@@ -64,7 +68,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 userDetails, null, userDetails.getAuthorities());
         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authToken);
-        log.debug("User {} success authenticated.", userDetails.getUsername());
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("User {} success authenticated.", userDetails.getUsername());
+        }
       }
     }
 

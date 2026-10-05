@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.List;
 import lombok.Builder;
 
+/** Standard API error structure. */
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Standard API error structure")
@@ -17,6 +18,7 @@ public record ErrorResponse(
     @Schema(description = "Error timestamp", example = "2025-01-15T10:30:00Z") Instant timestamp,
     @Schema(description = "Field-level validation details (only for VALIDATION_ERROR)")
         List<Violation> details) {
+  /** Single field validation failure. */
   @Schema(description = "Single field validation failure")
   public record Violation(
       @Schema(description = "Invalid field name", example = "password") String field,

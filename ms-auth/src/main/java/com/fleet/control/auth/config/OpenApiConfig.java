@@ -8,9 +8,15 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/** OpenAPI documentation setup with the JWT bearer scheme. */
 @Configuration
 public class OpenApiConfig {
 
+  /**
+   * Builds the OpenAPI definition for the authentication API.
+   *
+   * @return the configured OpenAPI model
+   */
   @Bean
   public OpenAPI customOpenApi() {
     return new OpenAPI()

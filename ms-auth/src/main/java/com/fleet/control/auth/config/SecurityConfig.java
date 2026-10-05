@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/** Stateless Spring Security configuration with JWT authentication. */
 @Configuration
 @EnableMethodSecurity
 @EnableWebSecurity
@@ -27,6 +28,13 @@ public class SecurityConfig {
   private final JwtAuthFilter jwtAuthFilter;
   private final CustomUserDetailsService customUserDetailsService;
 
+  /**
+   * Builds the stateless filter chain with public auth endpoints.
+   *
+   * @param http the security builder
+   * @return the configured filter chain
+   * @throws Exception if the chain cannot be built
+   */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
@@ -48,6 +56,11 @@ public class SecurityConfig {
     return http.build();
   }
 
+  /**
+   * Builds the DAO authentication provider backed by the user repository.
+   *
+   * @return the configured authentication provider
+   */
   @Bean
   public AuthenticationProvider authenticationProvider() {
     DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailsService);
@@ -55,12 +68,24 @@ public class SecurityConfig {
     return provider;
   }
 
+  /**
+   * Exposes the authentication manager used by the login flow.
+   *
+   * @param authenticationConfiguration Spring Security configuration holder
+   * @return the authentication manager
+   * @throws Exception if it cannot be created
+   */
   @Bean
   public AuthenticationManager authenticationManager(
       AuthenticationConfiguration authenticationConfiguration) throws Exception {
     return authenticationConfiguration.getAuthenticationManager();
   }
 
+  /**
+   * Provides the BCrypt encoder used to hash passwords.
+   *
+   * @return the password encoder
+   */
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
