@@ -217,6 +217,7 @@
 				<version>${jacoco.version}</version>
 				<configuration>
 					<excludes>
+						<exclude>**/config/OpenApiConfig.class</exclude>
 						<exclude>**/*Application.class</exclude>
 					</excludes>
 				</configuration>
