@@ -6,4 +6,5 @@ public class HeaderConstants {
   private HeaderConstants() {}
 
   public static final String AUTHORIZATION = "Authorization";
+  public static final String INTERNAL_KEY = "X-Internal-Key";
 }

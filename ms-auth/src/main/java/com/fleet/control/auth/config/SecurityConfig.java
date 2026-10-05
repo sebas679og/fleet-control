@@ -26,6 +26,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
   private final JwtAuthFilter jwtAuthFilter;
+  private final InternalKeyAuthFilter internalKeyAuthFilter;
+  private final SecurityErrorHandler securityErrorHandler;
   private final CustomUserDetailsService customUserDetailsService;
 
   /**
@@ -50,8 +52,14 @@ public class SecurityConfig {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
+        .exceptionHandling(
+            exceptions ->
+                exceptions
+                    .authenticationEntryPoint(securityErrorHandler)
+                    .accessDeniedHandler(securityErrorHandler))
         .authenticationProvider(authenticationProvider())
-        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(internalKeyAuthFilter, JwtAuthFilter.class);
 
     return http.build();
   }

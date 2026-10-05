@@ -2,7 +2,9 @@ package com.fleet.control.auth.config;
 
 import com.fleet.control.auth.common.constants.HeaderConstants;
 import com.fleet.control.auth.common.constants.JwtConstants;
+import com.fleet.control.auth.common.exceptions.ErrorCodes;
 import com.fleet.control.auth.service.JwtService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,6 +56,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       if (LOGGER.isWarnEnabled()) {
         LOGGER.warn("Invalid or expired JWT: {}", e.getMessage());
       }
+      // An expired token throws ExpiredJwtException from the parser, so a valid
+      // email here always means a live token and no further expiry check is needed.
+      request.setAttribute(
+          SecurityErrorHandler.AUTH_ERROR_ATTRIBUTE,
+          isExpiredCause(e) ? ErrorCodes.TOKEN_EXPIRED : ErrorCodes.UNAUTHORIZED);
       filterChain.doFilter(request, response);
       return;
     }
@@ -62,18 +69,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       // Load the full user from the database (including roles)
       UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-      if (!jwtService.isExpired(jwt)) {
-        UsernamePasswordAuthenticationToken authToken =
-            new UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.getAuthorities());
-        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authToken);
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("User {} success authenticated.", userDetails.getUsername());
-        }
+      UsernamePasswordAuthenticationToken authToken =
+          new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+      authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+      SecurityContextHolder.getContext().setAuthentication(authToken);
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("User {} success authenticated.", userDetails.getUsername());
       }
     }
 
     filterChain.doFilter(request, response);
+  }
+
+  private static boolean isExpiredCause(Throwable throwable) {
+    Throwable cause = throwable;
+    while (cause != null) {
+      if (cause instanceof ExpiredJwtException) {
+        return true;
+      }
+      cause = cause.getCause();
+    }
+    return false;
   }
 }
