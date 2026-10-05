@@ -195,6 +195,7 @@
 				<configuration>
 					<excludes>
 						<exclude>**/*Application.class</exclude>
+						<exclude>**/config/OpenApiConfig.class</exclude>
 					</excludes>
 				</configuration>
 				<executions>
