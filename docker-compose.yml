@@ -1,0 +1,320 @@
+name: FleetControl-API
+
+services:
+  postgres-datasource:
+    image: postgres:18.6
+    environment:
+      POSTGRES_USER: ${FLEET_CONTROL_DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${FLEET_CONTROL_DATASOURCE_PASSWORD}
+      FLEET_CONTROL_DATASOURCE_DB_AUTH: ${FLEET_CONTROL_DATASOURCE_DB_AUTH}
+      FLEET_CONTROL_DATASOURCE_DB_VEHICLES: ${FLEET_CONTROL_DATASOURCE_DB_VEHICLES}
+      FLEET_CONTROL_DATASOURCE_DB_DRIVERS: ${FLEET_CONTROL_DATASOURCE_DB_DRIVERS}
+      FLEET_CONTROL_DATASOURCE_DB_ROUTES: ${FLEET_CONTROL_DATASOURCE_DB_ROUTES}
+      FLEET_CONTROL_DATASOURCE_DB_MAINTENANCE: ${FLEET_CONTROL_DATASOURCE_DB_MAINTENANCE}
+      FLEET_CONTROL_DATASOURCE_DB_FUEL: ${FLEET_CONTROL_DATASOURCE_DB_FUEL}
+      FLEET_CONTROL_DATASOURCE_DB_ALERTS: ${FLEET_CONTROL_DATASOURCE_DB_ALERTS}
+    ports:
+      - "5432:5432"
+    volumes:
+      - fleet-control-data:/var/lib/postgresql
+      - ./config/postgres_db/init-multiple-db.sh:/docker-entrypoint-initdb.d/init-multiple-db.sh
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${FLEET_CONTROL_DATASOURCE_USERNAME} -d ${FLEET_CONTROL_DATASOURCE_DB_AUTH} && pg_isready -U ${FLEET_CONTROL_DATASOURCE_USERNAME} -d ${FLEET_CONTROL_DATASOURCE_DB_VEHICLES} && pg_isready -U ${FLEET_CONTROL_DATASOURCE_USERNAME} -d ${FLEET_CONTROL_DATASOURCE_DB_DRIVERS} && pg_isready -U ${FLEET_CONTROL_DATASOURCE_USERNAME} -d ${FLEET_CONTROL_DATASOURCE_DB_ROUTES} && pg_isready -U ${FLEET_CONTROL_DATASOURCE_USERNAME} -d ${FLEET_CONTROL_DATASOURCE_DB_MAINTENANCE} && pg_isready -U ${FLEET_CONTROL_DATASOURCE_USERNAME} -d ${FLEET_CONTROL_DATASOURCE_DB_FUEL} && pg_isready -U ${FLEET_CONTROL_DATASOURCE_USERNAME} -d ${FLEET_CONTROL_DATASOURCE_DB_ALERTS}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: always
+    networks:
+      - fleet-control-network
+
+  ms-auth:
+    build:
+      context: ./ms-auth
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres-datasource:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FLEET_CONTROL_LEVEL_LOGIN: ${FLEET_CONTROL_LEVEL_LOGIN}
+      FLEET_CONTROL_DATASOURCE_URL_AUTH: jdbc:postgresql://postgres-datasource:5432/${FLEET_CONTROL_DATASOURCE_DB_AUTH}
+      FLEET_CONTROL_DATASOURCE_USERNAME: ${FLEET_CONTROL_DATASOURCE_USERNAME}
+      FLEET_CONTROL_DATASOURCE_PASSWORD: ${FLEET_CONTROL_DATASOURCE_PASSWORD}
+      FLEET_CONTROL_JPA_DDL: ${FLEET_CONTROL_JPA_DDL}
+      FLEET_CONTROL_JPA_SHOW_SQL: ${FLEET_CONTROL_JPA_SHOW_SQL}
+      SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    networks:
+      - fleet-control-network
+
+  ms-vehicles:
+    build:
+      context: ./ms-vehicles
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres-datasource:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FLEET_CONTROL_LEVEL_LOGIN: ${FLEET_CONTROL_LEVEL_LOGIN}
+      FLEET_CONTROL_DATASOURCE_URL_VEHICLES: jdbc:postgresql://postgres-datasource:5432/${FLEET_CONTROL_DATASOURCE_DB_VEHICLES}
+      FLEET_CONTROL_DATASOURCE_USERNAME: ${FLEET_CONTROL_DATASOURCE_USERNAME}
+      FLEET_CONTROL_DATASOURCE_PASSWORD: ${FLEET_CONTROL_DATASOURCE_PASSWORD}
+      FLEET_CONTROL_JPA_DDL: ${FLEET_CONTROL_JPA_DDL}
+      FLEET_CONTROL_JPA_SHOW_SQL: ${FLEET_CONTROL_JPA_SHOW_SQL}
+      SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    networks:
+      - fleet-control-network
+
+  ms-drivers:
+    build:
+      context: ./ms-drivers
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres-datasource:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FLEET_CONTROL_LEVEL_LOGIN: ${FLEET_CONTROL_LEVEL_LOGIN}
+      FLEET_CONTROL_DATASOURCE_URL_DRIVERS: jdbc:postgresql://postgres-datasource:5432/${FLEET_CONTROL_DATASOURCE_DB_DRIVERS}
+      FLEET_CONTROL_DATASOURCE_USERNAME: ${FLEET_CONTROL_DATASOURCE_USERNAME}
+      FLEET_CONTROL_DATASOURCE_PASSWORD: ${FLEET_CONTROL_DATASOURCE_PASSWORD}
+      FLEET_CONTROL_JPA_DDL: ${FLEET_CONTROL_JPA_DDL}
+      FLEET_CONTROL_JPA_SHOW_SQL: ${FLEET_CONTROL_JPA_SHOW_SQL}
+      SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    networks:
+      - fleet-control-network
+
+  ms-routes:
+    build:
+      context: ./ms-routes
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    depends_on:
+      postgres-datasource:
+        condition: service_healthy
+      ms-vehicles:
+        condition: service_started
+      ms-drivers:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FLEET_CONTROL_LEVEL_LOGIN: ${FLEET_CONTROL_LEVEL_LOGIN}
+      FLEET_CONTROL_DATASOURCE_URL_ROUTES: jdbc:postgresql://postgres-datasource:5432/${FLEET_CONTROL_DATASOURCE_DB_ROUTES}
+      FLEET_CONTROL_DATASOURCE_USERNAME: ${FLEET_CONTROL_DATASOURCE_USERNAME}
+      FLEET_CONTROL_DATASOURCE_PASSWORD: ${FLEET_CONTROL_DATASOURCE_PASSWORD}
+      FLEET_CONTROL_JPA_DDL: ${FLEET_CONTROL_JPA_DDL}
+      FLEET_CONTROL_JPA_SHOW_SQL: ${FLEET_CONTROL_JPA_SHOW_SQL}
+      SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8085/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    networks:
+      - fleet-control-network
+
+  ms-maintenance:
+    build:
+      context: ./ms-maintenance
+      dockerfile: Dockerfile
+    ports:
+      - "8086:8086"
+    depends_on:
+      postgres-datasource:
+        condition: service_healthy
+      ms-vehicles:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FLEET_CONTROL_LEVEL_LOGIN: ${FLEET_CONTROL_LEVEL_LOGIN}
+      FLEET_CONTROL_DATASOURCE_URL_MAINTENANCE: jdbc:postgresql://postgres-datasource:5432/${FLEET_CONTROL_DATASOURCE_DB_MAINTENANCE}
+      FLEET_CONTROL_DATASOURCE_USERNAME: ${FLEET_CONTROL_DATASOURCE_USERNAME}
+      FLEET_CONTROL_DATASOURCE_PASSWORD: ${FLEET_CONTROL_DATASOURCE_PASSWORD}
+      FLEET_CONTROL_JPA_DDL: ${FLEET_CONTROL_JPA_DDL}
+      FLEET_CONTROL_JPA_SHOW_SQL: ${FLEET_CONTROL_JPA_SHOW_SQL}
+      SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8086/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    networks:
+      - fleet-control-network
+
+  ms-fuel:
+    build:
+      context: ./ms-fuel
+      dockerfile: Dockerfile
+    ports:
+      - "8087:8087"
+    depends_on:
+      postgres-datasource:
+        condition: service_healthy
+      ms-vehicles:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FLEET_CONTROL_LEVEL_LOGIN: ${FLEET_CONTROL_LEVEL_LOGIN}
+      FLEET_CONTROL_DATASOURCE_URL_FUEL: jdbc:postgresql://postgres-datasource:5432/${FLEET_CONTROL_DATASOURCE_DB_FUEL}
+      FLEET_CONTROL_DATASOURCE_USERNAME: ${FLEET_CONTROL_DATASOURCE_USERNAME}
+      FLEET_CONTROL_DATASOURCE_PASSWORD: ${FLEET_CONTROL_DATASOURCE_PASSWORD}
+      FLEET_CONTROL_JPA_DDL: ${FLEET_CONTROL_JPA_DDL}
+      FLEET_CONTROL_JPA_SHOW_SQL: ${FLEET_CONTROL_JPA_SHOW_SQL}
+      SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8087/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    networks:
+      - fleet-control-network
+
+  ms-alerts:
+    build:
+      context: ./ms-alerts
+      dockerfile: Dockerfile
+    ports:
+      - "8088:8088"
+    depends_on:
+      postgres-datasource:
+        condition: service_healthy
+      ms-vehicles:
+        condition: service_started
+      ms-drivers:
+        condition: service_started
+      ms-maintenance:
+        condition: service_started
+      ms-fuel:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FLEET_CONTROL_LEVEL_LOGIN: ${FLEET_CONTROL_LEVEL_LOGIN}
+      FLEET_CONTROL_DATASOURCE_URL_ALERTS: jdbc:postgresql://postgres-datasource:5432/${FLEET_CONTROL_DATASOURCE_DB_ALERTS}
+      FLEET_CONTROL_DATASOURCE_USERNAME: ${FLEET_CONTROL_DATASOURCE_USERNAME}
+      FLEET_CONTROL_DATASOURCE_PASSWORD: ${FLEET_CONTROL_DATASOURCE_PASSWORD}
+      FLEET_CONTROL_JPA_DDL: ${FLEET_CONTROL_JPA_DDL}
+      FLEET_CONTROL_JPA_SHOW_SQL: ${FLEET_CONTROL_JPA_SHOW_SQL}
+      SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8088/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    networks:
+      - fleet-control-network
+
+  ms-dashboard:
+    build:
+      context: ./ms-dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "8089:8089"
+    depends_on:
+      ms-vehicles:
+        condition: service_started
+      ms-routes:
+        condition: service_started
+      ms-fuel:
+        condition: service_started
+      ms-maintenance:
+        condition: service_started
+      ms-alerts:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FLEET_CONTROL_LEVEL_LOGIN: ${FLEET_CONTROL_LEVEL_LOGIN}
+      SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8089/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    networks:
+      - fleet-control-network
+
+  ms-gateway:
+    build:
+      context: ./ms-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      ms-auth:
+        condition: service_started
+      ms-vehicles:
+        condition: service_started
+      ms-drivers:
+        condition: service_started
+      ms-routes:
+        condition: service_started
+      ms-maintenance:
+        condition: service_started
+      ms-fuel:
+        condition: service_started
+      ms-alerts:
+        condition: service_started
+      ms-dashboard:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      FLEET_CONTROL_LEVEL_LOGIN: ${FLEET_CONTROL_LEVEL_LOGIN}
+      SWAGGER_UI_DOCUMENTATION_ENABLED: ${SWAGGER_UI_DOCUMENTATION_ENABLED}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    networks:
+      - fleet-control-network
+
+networks:
+  fleet-control-network:
+    driver: bridge
+
+volumes:
+  fleet-control-data:
