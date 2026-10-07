@@ -2,12 +2,10 @@ package com.fleet.control.gateway.constants;
 
 public final class GatewayHeaders {
 
-    private GatewayHeaders() {
-    }
+  private GatewayHeaders() {}
 
-    public static final String X_USER_ID = "X-User-Id";
-    public static final String X_USER_ROLE = "X-User-Role";
-    public static final String X_USER_NAME = "X-User-Name";
-    public static final String BEARER_PREFIX = "Bearer ";
-
+  public static final String X_USER_ID = "X-User-Id";
+  public static final String X_USER_ROLE = "X-User-Role";
+  public static final String X_USER_NAME = "X-User-Name";
+  public static final String BEARER_PREFIX = "Bearer ";
 }
