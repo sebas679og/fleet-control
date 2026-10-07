@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+/** Limits requests per client IP within a 60-second window (429 when exceeded). */
 @Component
 public class RateLimitFilter implements GlobalFilter, Ordered {
 

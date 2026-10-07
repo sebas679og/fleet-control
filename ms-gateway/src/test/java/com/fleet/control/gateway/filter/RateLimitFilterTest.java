@@ -69,4 +69,21 @@ class RateLimitFilterTest {
     assertNotNull(retryAfter);
     assertTrue(Long.parseLong(retryAfter) >= 1);
   }
+
+  @Test
+  void forwardedHeaderIsUsedAsClientIp() {
+    RateLimitFilter filter = new RateLimitFilter(1);
+    GatewayFilterChain chain = exchange -> Mono.empty();
+
+    MockServerWebExchange first =
+        MockServerWebExchange.from(
+            MockServerHttpRequest.get("/api/test").header("X-Forwarded-For", "10.0.0.7"));
+    filter.filter(first, chain).block();
+    MockServerWebExchange second =
+        MockServerWebExchange.from(
+            MockServerHttpRequest.get("/api/test").header("X-Forwarded-For", "10.0.0.7"));
+    filter.filter(second, chain).block();
+
+    assertEquals(HttpStatus.TOO_MANY_REQUESTS, second.getResponse().getStatusCode());
+  }
 }

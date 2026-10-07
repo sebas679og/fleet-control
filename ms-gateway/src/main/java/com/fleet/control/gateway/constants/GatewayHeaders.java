@@ -1,5 +1,6 @@
 package com.fleet.control.gateway.constants;
 
+/** Header names propagated by the gateway. */
 public final class GatewayHeaders {
 
   private GatewayHeaders() {}

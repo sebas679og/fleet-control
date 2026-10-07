@@ -4,6 +4,7 @@ import java.util.function.Predicate;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 
+/** Decides whether a route requires authentication. */
 @Component
 public class RouterValidator {
 

@@ -1,5 +1,6 @@
 package com.fleet.control.gateway.constants;
 
+/** Keys and statuses for the aggregated /health response. */
 public final class HealthConstants {
 
   private HealthConstants() {}

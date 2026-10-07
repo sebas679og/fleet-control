@@ -1,5 +1,6 @@
 package com.fleet.control.gateway.constants;
 
+/** Human-readable messages for gateway error responses. */
 public final class GatewayMessages {
 
   private GatewayMessages() {}
