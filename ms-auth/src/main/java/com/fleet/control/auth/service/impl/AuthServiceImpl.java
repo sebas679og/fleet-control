@@ -2,7 +2,6 @@ package com.fleet.control.auth.service.impl;
 
 import com.fleet.control.auth.common.constants.JwtConstants;
 import com.fleet.control.auth.common.exceptions.DuplicateEmailException;
-import com.fleet.control.auth.common.exceptions.DuplicateUsernameException;
 import com.fleet.control.auth.common.exceptions.ErrorCodes;
 import com.fleet.control.auth.common.exceptions.ErrorMessages;
 import com.fleet.control.auth.common.exceptions.InvalidCredentialsException;
@@ -19,8 +18,6 @@ import com.fleet.control.auth.service.AuthService;
 import com.fleet.control.auth.service.JwtService;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,8 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(AuthServiceImpl.class);
 
   private final UserEntityRepository userEntityRepository;
   private final PasswordEncoder passwordEncoder;
@@ -51,11 +46,9 @@ public class AuthServiceImpl implements AuthService {
   @Override
   @Transactional
   public RegisterResponse createUser(RegisterRequest registerRequest) {
-    if (userEntityRepository.existsByEmail(registerRequest.email())) {
+    if (userEntityRepository.existsByEmailOrUsername(
+        registerRequest.email(), registerRequest.username())) {
       throw new DuplicateEmailException(ErrorMessages.USER_ALREADY_EXISTS);
-    }
-    if (userEntityRepository.existsByUsername(registerRequest.username())) {
-      throw new DuplicateUsernameException(ErrorMessages.USERNAME_ALREADY_EXISTS);
     }
 
     UserEntity user = userMapper.toUserEntity(registerRequest);
@@ -64,9 +57,6 @@ public class AuthServiceImpl implements AuthService {
     user.setUpdatedAt(Instant.now());
 
     UserEntity saved = userEntityRepository.save(user);
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("User created: {}", saved.getEmail());
-    }
 
     return new RegisterResponse(
         saved.getId().toString(),
@@ -92,16 +82,9 @@ public class AuthServiceImpl implements AuthService {
 
       UserEntity user = (UserEntity) authentication.getPrincipal();
 
-      if (LOGGER.isInfoEnabled()) {
-        LOGGER.info("User logged in: {}", user.getEmail());
-      }
-
       return jwtService.generateToken(
           user.getEmail(), user.getId().toString(), user.getUsername(), user.getRole().name());
     } catch (BadCredentialsException e) {
-      if (LOGGER.isWarnEnabled()) {
-        LOGGER.warn("Failed login attempt for email: {}", loginRequest.email());
-      }
       throw new InvalidCredentialsException(ErrorMessages.INVALID_CREDENTIALS);
     }
   }

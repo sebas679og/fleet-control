@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import com.fleet.control.auth.common.constants.HeaderConstants;
 import com.fleet.control.auth.common.exceptions.ErrorCodes;
 import com.fleet.control.auth.config.JwtAuthFilter;
 import com.fleet.control.auth.config.SecurityErrorHandler;
@@ -21,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,7 +52,7 @@ class JwtAuthFilterTest {
 
   @Test
   void doFilterWithoutAuthHeaderPassesThrough() throws Exception {
-    given(request.getHeader(HeaderConstants.AUTHORIZATION)).willReturn(null);
+    given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn(null);
 
     filter.doFilter(request, response, filterChain);
 
@@ -62,7 +62,7 @@ class JwtAuthFilterTest {
 
   @Test
   void doFilterWithNonBearerHeaderPassesThrough() throws Exception {
-    given(request.getHeader(HeaderConstants.AUTHORIZATION)).willReturn("Basic some-token");
+    given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Basic some-token");
 
     filter.doFilter(request, response, filterChain);
 
@@ -72,7 +72,7 @@ class JwtAuthFilterTest {
 
   @Test
   void doFilterWithInvalidJwtPassesThrough() throws Exception {
-    given(request.getHeader(HeaderConstants.AUTHORIZATION)).willReturn("Bearer bad-token");
+    given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer bad-token");
     given(jwtService.extractEmail("bad-token")).willThrow(new RuntimeException("Invalid JWT"));
 
     filter.doFilter(request, response, filterChain);
@@ -83,7 +83,7 @@ class JwtAuthFilterTest {
 
   @Test
   void doFilterWithExpiredJwtPassesThrough() throws Exception {
-    given(request.getHeader(HeaderConstants.AUTHORIZATION)).willReturn("Bearer expired-token");
+    given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer expired-token");
     given(jwtService.extractEmail("expired-token"))
         .willThrow(
             new IllegalArgumentException(
@@ -97,7 +97,7 @@ class JwtAuthFilterTest {
 
   @Test
   void doFilterWithValidJwtSetsAuthentication() throws Exception {
-    given(request.getHeader(HeaderConstants.AUTHORIZATION)).willReturn("Bearer valid-token");
+    given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer valid-token");
     given(jwtService.extractEmail("valid-token")).willReturn("user@example.com");
     var userDetails = new User("user@example.com", "pass", List.of());
     given(userDetailsService.loadUserByUsername("user@example.com")).willReturn(userDetails);
@@ -124,7 +124,7 @@ class JwtAuthFilterTest {
 
   @Test
   void doFilterWhenUserNotFoundPropagatesException() {
-    given(request.getHeader(HeaderConstants.AUTHORIZATION)).willReturn("Bearer valid-token");
+    given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer valid-token");
     given(jwtService.extractEmail("valid-token")).willReturn("unknown@example.com");
     given(userDetailsService.loadUserByUsername("unknown@example.com"))
         .willThrow(new UsernameNotFoundException("User not found"));
@@ -135,7 +135,7 @@ class JwtAuthFilterTest {
 
   @Test
   void doFilterWithInvalidJwtMarksUnauthorized() throws Exception {
-    given(request.getHeader(HeaderConstants.AUTHORIZATION)).willReturn("Bearer bad-token");
+    given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer bad-token");
     given(jwtService.extractEmail("bad-token")).willThrow(new RuntimeException("Invalid JWT"));
 
     filter.doFilter(request, response, filterChain);
@@ -147,7 +147,7 @@ class JwtAuthFilterTest {
 
   @Test
   void doFilterWithExpiredJwtMarksTokenExpired() throws Exception {
-    given(request.getHeader(HeaderConstants.AUTHORIZATION)).willReturn("Bearer expired-token");
+    given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer expired-token");
     given(jwtService.extractEmail("expired-token"))
         .willThrow(
             new IllegalArgumentException(

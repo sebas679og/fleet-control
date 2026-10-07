@@ -1,6 +1,5 @@
 package com.fleet.control.auth.config;
 
-import com.fleet.control.auth.common.constants.HeaderConstants;
 import com.fleet.control.auth.common.constants.JwtConstants;
 import com.fleet.control.auth.common.exceptions.ErrorCodes;
 import com.fleet.control.auth.service.JwtService;
@@ -14,6 +13,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -41,7 +41,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       @NonNull FilterChain filterChain)
       throws ServletException, IOException {
 
-    final String authHeader = request.getHeader(HeaderConstants.AUTHORIZATION);
+    final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
     if (!StringUtils.hasText(authHeader) || !authHeader.startsWith(JwtConstants.BEARER_PREFIX)) {
       filterChain.doFilter(request, response);
@@ -53,8 +53,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     try {
       userEmail = jwtService.extractEmail(jwt);
     } catch (Exception e) {
-      if (LOGGER.isWarnEnabled()) {
-        LOGGER.warn("Invalid or expired JWT: {}", e.getMessage());
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Invalid or expired JWT: {}", e.getMessage());
       }
       // An expired token throws ExpiredJwtException from the parser, so a valid
       // email here always means a live token and no further expiry check is needed.
@@ -73,9 +73,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
           new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
       authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
       SecurityContextHolder.getContext().setAuthentication(authToken);
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("User {} success authenticated.", userDetails.getUsername());
-      }
     }
 
     filterChain.doFilter(request, response);

@@ -66,8 +66,8 @@ class AuthServiceImplTest {
             .updatedAt(Instant.parse("2026-01-01T00:00:00Z"))
             .build();
 
-    when(userEntityRepository.existsByEmail(request.email())).thenReturn(false);
-    when(userEntityRepository.existsByUsername(request.username())).thenReturn(false);
+    when(userEntityRepository.existsByEmailOrUsername(request.email(), request.username()))
+        .thenReturn(false);
     when(userMapper.toUserEntity(request)).thenReturn(mapped);
     when(passwordEncoder.encode(request.password())).thenReturn("encoded");
     when(userEntityRepository.save(any(UserEntity.class))).thenReturn(saved);
@@ -91,7 +91,8 @@ class AuthServiceImplTest {
             .password("StrongPass123!")
             .build();
 
-    when(userEntityRepository.existsByEmail(request.email())).thenReturn(true);
+    when(userEntityRepository.existsByEmailOrUsername(request.email(), request.username()))
+        .thenReturn(true);
 
     assertThrows(DuplicateEmailException.class, () -> authService.createUser(request));
     verify(userEntityRepository, never()).save(any(UserEntity.class));

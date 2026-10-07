@@ -1,6 +1,5 @@
 package com.fleet.control.auth.controller;
 
-import com.fleet.control.auth.common.constants.HeaderConstants;
 import com.fleet.control.auth.common.path.ApiPaths;
 import com.fleet.control.auth.models.dto.exceptions.response.ErrorResponse;
 import com.fleet.control.auth.models.dto.token.request.TokenPayload;
@@ -16,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -104,5 +104,5 @@ public interface AuthApi {
   @SecurityRequirement(name = "bearerAuth")
   @PostMapping(ApiPaths.VALIDATE)
   ResponseEntity<TokenPayload> validateToken(
-      @RequestHeader(HeaderConstants.AUTHORIZATION) String authHeader);
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader);
 }
