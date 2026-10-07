@@ -10,9 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class TokenPayload {
-    private boolean valid;
-    private String userId;
-    private String username;
-    private String role;
-
+  private boolean valid;
+  private String userId;
+  private String username;
+  private String role;
 }
