@@ -18,14 +18,15 @@ public class RequestIdFilter implements GlobalFilter, Ordered {
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
     String requestId = exchange.getRequest().getHeaders().getFirst(X_REQUEST_ID);
+    ServerWebExchange filtered = exchange;
     if (requestId == null || requestId.isBlank()) {
       requestId = UUID.randomUUID().toString();
       ServerHttpRequest mutated =
           exchange.getRequest().mutate().header(X_REQUEST_ID, requestId).build();
-      exchange = exchange.mutate().request(mutated).build();
+      filtered = exchange.mutate().request(mutated).build();
     }
-    exchange.getResponse().getHeaders().set(X_REQUEST_ID, requestId);
-    return chain.filter(exchange);
+    filtered.getResponse().getHeaders().set(X_REQUEST_ID, requestId);
+    return chain.filter(filtered);
   }
 
   @Override

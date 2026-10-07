@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+/** Maps gateway timeouts and errors to 503 responses. */
 @Component
 @Order(-2)
 public class GlobalExceptionHandler implements ErrorWebExceptionHandler {

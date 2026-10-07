@@ -24,6 +24,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+/** Validates the bearer token against ms-auth for secured routes (currently dormant). */
 @Component
 public class AuthenticationFilter
     extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
@@ -38,12 +39,14 @@ public class AuthenticationFilter
   @Value("${AUTH_SERVICE_URL:http://localhost:8081}")
   private String authServiceUrl;
 
+  /** Creates the filter with its WebClient and route validator. */
   public AuthenticationFilter(WebClient.Builder webClientBuilder, RouterValidator routerValidator) {
     super(Config.class);
     this.webClientBuilder = webClientBuilder;
     this.routerValidator = routerValidator;
   }
 
+  /** Empty configuration holder required by the filter factory. */
   public static class Config {}
 
   @Override

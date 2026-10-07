@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Token validation result forwarded to downstream services. */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

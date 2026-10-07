@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Error body returned by the gateway (429 rate limit, 503 unavailable). */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

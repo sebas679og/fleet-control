@@ -2,8 +2,8 @@ package com.fleet.control.gateway.health;
 
 import com.fleet.control.gateway.constants.HealthConstants;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+/** Aggregated health of the gateway and the eight downstream services. */
 @RestController
 @RequestMapping("/health")
 public class HealthController {
@@ -41,6 +42,7 @@ public class HealthController {
 
   private final WebClient webClient = WebClient.create();
 
+  /** Aggregated status of the gateway and the eight downstream services. */
   @GetMapping
   public Mono<Map<String, Object>> health() {
     return Mono.zip(
@@ -54,11 +56,11 @@ public class HealthController {
             check(dashboardUrl))
         .map(
             tuple -> {
-              Map<String, Object> response = new HashMap<>();
+              Map<String, Object> response = new ConcurrentHashMap<>();
               response.put(HealthConstants.KEY_GATEWAY, HealthConstants.STATUS_UP);
               response.put(HealthConstants.KEY_TIMESTAMP, Instant.now());
 
-              Map<String, String> services = new HashMap<>();
+              Map<String, String> services = new ConcurrentHashMap<>();
               services.put("ms-auth", tuple.getT1());
               services.put("ms-vehicles", tuple.getT2());
               services.put("ms-drivers", tuple.getT3());

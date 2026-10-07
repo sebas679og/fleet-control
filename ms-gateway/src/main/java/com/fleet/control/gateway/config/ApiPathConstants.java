@@ -2,6 +2,7 @@ package com.fleet.control.gateway.config;
 
 import java.util.List;
 
+/** Route paths and public endpoints excluded from authentication. */
 public final class ApiPathConstants {
 
   private ApiPathConstants() {}

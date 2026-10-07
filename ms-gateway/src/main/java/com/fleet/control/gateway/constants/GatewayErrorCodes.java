@@ -1,5 +1,6 @@
 package com.fleet.control.gateway.constants;
 
+/** Machine-readable codes for gateway error responses. */
 public final class GatewayErrorCodes {
 
   private GatewayErrorCodes() {}
