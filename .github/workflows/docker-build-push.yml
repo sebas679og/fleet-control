@@ -48,7 +48,7 @@ jobs:
             description: The `ms-routes` service manages fleet routes, planning, execution and history. It consumes `ms-vehicles` and `ms-drivers` to validate assignments and to update the vehicle status and odometer when a route starts or ends. It is the origin of the **distance traveled** metric.
 
           - name: fleet-control-vehicles
-            context: ms-vehicle
+            context: ms-vehicles
             description: The `ms-vehicles` service keeps the fleet inventory with each vehicle's operational status and odometer.
 
       max-parallel: 1
