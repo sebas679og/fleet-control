@@ -1,6 +1,5 @@
 package com.fleet.control.auth.controller.impl;
 
-import com.fleet.control.auth.common.constants.HeaderConstants;
 import com.fleet.control.auth.controller.AuthApi;
 import com.fleet.control.auth.models.dto.token.request.TokenPayload;
 import com.fleet.control.auth.models.dto.token.response.TokenResponse;
@@ -10,6 +9,7 @@ import com.fleet.control.auth.models.dto.user.response.RegisterResponse;
 import com.fleet.control.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,7 +38,7 @@ public class AuthApiController implements AuthApi {
 
   @Override
   public ResponseEntity<TokenPayload> validateToken(
-      @RequestHeader(HeaderConstants.AUTHORIZATION) String authHeader) {
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
     return ResponseEntity.ok(authService.validateToken(authHeader));
   }
 }

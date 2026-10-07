@@ -19,7 +19,10 @@ public interface UserMapper {
 
   @Mapping(target = "token", source = "token")
   @Mapping(target = "tokenType", constant = "Bearer")
-  @Mapping(target = "expiresIn", expression = "java(3600L)")
+  @Mapping(
+      target = "expiresIn",
+      expression =
+          "java(com.fleet.control.auth.common.constants.JwtConstants.EXPIRES_IN_SECONDS_DEFAULT)")
   @Mapping(target = "userId", source = "userId")
   @Mapping(target = "role", source = "role")
   TokenResponse toTokenResponse(String token, String userId, String role);

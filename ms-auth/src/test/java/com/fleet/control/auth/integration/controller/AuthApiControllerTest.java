@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fleet.control.auth.common.constants.HeaderConstants;
 import com.fleet.control.auth.common.exceptions.DuplicateEmailException;
 import com.fleet.control.auth.common.exceptions.ErrorCodes;
 import com.fleet.control.auth.common.exceptions.ErrorMessages;
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
@@ -163,8 +163,7 @@ class AuthApiControllerTest {
 
     mockMvc
         .perform(
-            post(ApiPaths.VALIDATE_ENDPOINT)
-                .header(HeaderConstants.AUTHORIZATION, "Bearer bad-token"))
+            post(ApiPaths.VALIDATE_ENDPOINT).header(HttpHeaders.AUTHORIZATION, "Bearer bad-token"))
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.valid").value(false))
         .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_TOKEN));
