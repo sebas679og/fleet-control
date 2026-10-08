@@ -1,56 +1,39 @@
 package com.fleet.control.auth.config;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
-import io.swagger.v3.oas.annotations.info.Contact;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.security.SecurityScheme;
-import io.swagger.v3.oas.annotations.servers.Server;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/** Configuration class for OpenAPI (Swagger) documentation. */
-@OpenAPIDefinition(
-    info =
-        @Info(
-            title = "FleetControl Authentication API",
-            description =
-                """
-                REST API for user registration and authentication.
-                Issues JWT tokens (HS256, valid for 1 hour)
-                with the claims `sub`, `username` and `role`, \
-                which every domain microservice validates
-                on each protected request.
-                Roles: `MANAGER` (assigned on registration) and `
-                ADMIN` (created by the demo seeder).
-                Registration and login are public; token validation
-                is meant for internal use.
-                """,
-            version = "1.0",
-            contact = @Contact(name = "FleetControl Team")),
-    servers = {
-      @Server(url = "http://localhost:8080", description = "API Gateway (recommended entry point)"),
-      @Server(
-          url = "http://localhost:8081",
-          description = "ms-auth (direct access, development only)")
-    },
-    security = @SecurityRequirement(name = "BearerAuth"),
-    tags = {
-      @Tag(name = "Authentication", description = "User registration, login and token validation")
-    })
-@SecurityScheme(
-    name = "BearerAuth",
-    description =
-        """
-                JWT issued by `ms-auth` (HS256, valid for 1 hour)
-                and sent in the `Authorization` header \
-                using the Bearer scheme: `Authorization:
-                Bearer <token>`.
-                The token carries the claims `sub` (user id),
-                `username` and `role` (`MANAGER` or `ADMIN`).
-                Obtain it with `POST /api/auth/login`.
-                """,
-    type = SecuritySchemeType.HTTP,
-    scheme = "bearer",
-    bearerFormat = "JWT")
-public class OpenApiConfig {}
+/** OpenAPI documentation setup with the JWT bearer scheme. */
+@Configuration
+public class OpenApiConfig {
+
+  /**
+   * Builds the OpenAPI definition for the authentication API.
+   *
+   * @return the configured OpenAPI model
+   */
+  @Bean
+  public OpenAPI customOpenApi() {
+    return new OpenAPI()
+        .info(
+            new Info()
+                .title("ms-auth")
+                .version("0.0.1")
+                .description("Authentication and Authorization Spring Security Micro Service")
+                .contact(new Contact().name("Diogenes Quintero").email("dio-quincar@outlook.com")))
+        .components(
+            new Components()
+                .addSecuritySchemes(
+                    "bearerAuth",
+                    new SecurityScheme()
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer")
+                        .bearerFormat("JWT")
+                        .description("JWT Token Format : Bearer &lt;token&gt;")));
+  }
+}

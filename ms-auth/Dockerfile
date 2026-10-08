@@ -1,4 +1,4 @@
-FROM maven:3.9.11-eclipse-temurin-25 AS builder
+FROM maven:3.9.11-eclipse-temurin-17 AS builder
 
 ARG UID=1010
 ARG GID=1010
@@ -15,7 +15,7 @@ COPY --chown=group2:group2 src ./src
 
 RUN mvn clean package -DskipTests -q
 
-FROM eclipse-temurin:25-jre AS runtime
+FROM eclipse-temurin:17-jre AS runtime
 
 ARG BUILD_DATE=unknown
 ARG BUILD_VERSION=unknown
@@ -27,7 +27,7 @@ ARG GID=1010
 LABEL group2.fleet-control.build-date=$BUILD_DATE \
       group2.fleet-control.name=$IMAGE_NAME \
       group2.fleet-control.description=$IMAGE_DESCRIPTION \
-      group2.fleet-control.base.image="eclipse-temurin:25-jre" \
+      group2.fleet-control.base.image="eclipse-temurin:17-jre" \
       group2.fleet-control.version=$BUILD_VERSION \
       maintainer="group2"
 
