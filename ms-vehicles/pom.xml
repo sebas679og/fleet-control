@@ -6,9 +6,8 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.1.1</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.fleet.control.vehicles</groupId>
 	<artifactId>ms-vehicles</artifactId>
 	<version>0.0.1</version>
 	<name/>
@@ -27,7 +26,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>25</java.version>
+		<java.version>17</java.version>
 		<tomcat.version>11.0.26</tomcat.version>
 		<logback.version>1.6.3</logback.version>
 		<jackson-2-bom.version>2.21.7</jackson-2-bom.version>
@@ -89,11 +88,6 @@
 		<dependency>
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct</artifactId>
-			<version>${mapstruct.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.mapstruct</groupId>
-			<artifactId>mapstruct-processor</artifactId>
 			<version>${mapstruct.version}</version>
 		</dependency>
 		<dependency>
@@ -172,6 +166,9 @@
 							<version>${mapstruct.version}</version>
 						</path>
 					</annotationProcessorPaths>
+					<compilerArgs>
+						<arg>-Amapstruct.defaultComponentModel=spring</arg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -310,7 +307,7 @@
 					</rulesets>
 					<failOnViolation>true</failOnViolation>
 					<printFailingErrors>true</printFailingErrors>
-					<targetJdk>25</targetJdk>
+					<targetJdk>17</targetJdk>
 					<excludeRoots>
 						<excludeRoot>target/generated-sources</excludeRoot>
 					</excludeRoots>
@@ -325,5 +322,29 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<spring.profiles.active>dev</spring.profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>stg</id>
+			<properties>
+				<spring.profiles.active>stg</spring.profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>prod</id>
+			<properties>
+				<spring.profiles.active>prod</spring.profiles.active>
+			</properties>
+		</profile>
+	</profiles>
 
 </project>
