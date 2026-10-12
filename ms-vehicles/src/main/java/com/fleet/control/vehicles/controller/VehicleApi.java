@@ -2,6 +2,7 @@ package com.fleet.control.vehicles.controller;
 
 import com.fleet.control.vehicles.common.constants.ApiPathConstants;
 import com.fleet.control.vehicles.common.models.dtos.request.CreateVehicleRequest;
+import com.fleet.control.vehicles.common.models.dtos.request.UpdateStatusRequest;
 import com.fleet.control.vehicles.common.models.dtos.request.UpdateVehicleRequest;
 import com.fleet.control.vehicles.common.models.dtos.response.PageResponse;
 import com.fleet.control.vehicles.common.models.dtos.response.VehicleResponse;
@@ -19,6 +20,7 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -112,4 +114,36 @@ public interface VehicleApi {
   @PutMapping(ApiPathConstants.BY_ID)
   ResponseEntity<VehicleResponse> update(
       @PathVariable UUID vehicleId, @Valid @RequestBody UpdateVehicleRequest request);
+
+  @Operation(
+      summary = "Change vehicle status",
+      description = "Applies an allowed status transition and optionally advances the odometer. "
+          + "Only ADMIN can reactivate OUT_OF_SERVICE to AVAILABLE. "
+          + "Internal services authenticate with X-Internal-Key as MANAGER.")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Status updated",
+            content = @Content(schema = @Schema(implementation = VehicleResponse.class))),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid input",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Role without permission (reactivation requires ADMIN)",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No vehicle exists with the provided ID",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(
+            responseCode = "409",
+            description = "Transition not allowed or odometer lower than current",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+      })
+  @PatchMapping(ApiPathConstants.STATUS)
+  ResponseEntity<VehicleResponse> updateStatus(
+      @PathVariable UUID vehicleId, @Valid @RequestBody UpdateStatusRequest request);
 }

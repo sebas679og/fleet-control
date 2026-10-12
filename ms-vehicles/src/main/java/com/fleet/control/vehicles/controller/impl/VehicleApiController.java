@@ -1,6 +1,7 @@
 package com.fleet.control.vehicles.controller.impl;
 
 import com.fleet.control.vehicles.common.models.dtos.request.CreateVehicleRequest;
+import com.fleet.control.vehicles.common.models.dtos.request.UpdateStatusRequest;
 import com.fleet.control.vehicles.common.models.dtos.request.UpdateVehicleRequest;
 import com.fleet.control.vehicles.common.models.dtos.response.PageResponse;
 import com.fleet.control.vehicles.common.models.dtos.response.VehicleResponse;
@@ -13,6 +14,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -51,5 +53,12 @@ public class VehicleApiController implements VehicleApi {
   public ResponseEntity<VehicleResponse> update(
       @PathVariable UUID vehicleId, @RequestBody @Valid UpdateVehicleRequest request) {
     return ResponseEntity.ok(vehicleService.update(vehicleId, request));
+  }
+
+  @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+  public ResponseEntity<VehicleResponse> updateStatus(
+      @PathVariable UUID vehicleId, @RequestBody @Valid UpdateStatusRequest request) {
+    return ResponseEntity.ok(vehicleService.updateStatus(vehicleId, request));
   }
 }
