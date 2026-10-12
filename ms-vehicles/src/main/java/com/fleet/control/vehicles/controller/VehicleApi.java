@@ -10,6 +10,7 @@ import com.fleet.control.vehicles.common.models.enums.VehicleStatus;
 import com.fleet.control.vehicles.common.models.enums.VehicleType;
 import com.fleet.control.vehicles.exceptions.dto.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -71,11 +72,13 @@ public interface VehicleApi {
       })
   @GetMapping
   ResponseEntity<PageResponse<VehicleResponse>> list(
-      @RequestParam(required = false) VehicleStatus status,
-      @RequestParam(required = false, name = "type") VehicleType vehicleType,
-      @RequestParam(required = false) String plate,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size);
+      @Parameter(description = "Filter by status") @RequestParam(required = false)
+          VehicleStatus status,
+      @Parameter(description = "Filter by type") @RequestParam(required = false, name = "type")
+          VehicleType vehicleType,
+      @Parameter(description = "Partial plate match") @RequestParam(required = false) String plate,
+      @Parameter(description = "Page number") @RequestParam(defaultValue = "0") int page,
+      @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size);
 
   @Operation(summary = "Vehicle detail", description = "Returns a vehicle by its ID.")
   @ApiResponses(
@@ -90,7 +93,8 @@ public interface VehicleApi {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
       })
   @GetMapping(ApiPathConstants.BY_ID)
-  ResponseEntity<VehicleResponse> getById(@PathVariable UUID vehicleId);
+  ResponseEntity<VehicleResponse> getById(
+      @Parameter(description = "Vehicle identifier") @PathVariable UUID vehicleId);
 
   @Operation(
       summary = "Update vehicle descriptive data",
@@ -114,7 +118,8 @@ public interface VehicleApi {
       })
   @PutMapping(ApiPathConstants.BY_ID)
   ResponseEntity<VehicleResponse> update(
-      @PathVariable UUID vehicleId, @Valid @RequestBody UpdateVehicleRequest request);
+      @Parameter(description = "Vehicle identifier") @PathVariable UUID vehicleId,
+      @Valid @RequestBody UpdateVehicleRequest request);
 
   @Operation(
       summary = "Change vehicle status",
@@ -147,5 +152,6 @@ public interface VehicleApi {
       })
   @PatchMapping(ApiPathConstants.STATUS)
   ResponseEntity<VehicleResponse> updateStatus(
-      @PathVariable UUID vehicleId, @Valid @RequestBody UpdateStatusRequest request);
+      @Parameter(description = "Vehicle identifier") @PathVariable UUID vehicleId,
+      @Valid @RequestBody UpdateStatusRequest request);
 }

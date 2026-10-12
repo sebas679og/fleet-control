@@ -2,6 +2,7 @@ package com.fleet.control.vehicles.common.models.dtos.request;
 
 import com.fleet.control.vehicles.common.models.enums.FuelType;
 import com.fleet.control.vehicles.common.models.enums.VehicleType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,6 +11,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 /** Request payload to create a vehicle. */
+@Schema(description = "Request payload to create a vehicle")
 public record CreateVehicleRequest(
     @NotBlank(message = "plate must not be blank")
         @Size(max = 20, message = "plate must be at most 20 characters")
