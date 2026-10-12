@@ -6,17 +6,17 @@ import jakarta.validation.constraints.*;
 
 public record UpdateVehicleRequest(
 
-        @NotBlank @Size(max = 50)
+        @NotBlank(message = "make must not be blank") @Size(max = 40, message = "make must be at most 40 characters")
         String make,
-        @NotBlank @Size(max = 50)
+        @NotBlank(message = "model must not be blank") @Size(max = 40, message = "model must be at most 40 characters")
         String model,
-        @NotNull @Min(1990)
+        @NotNull(message = "year must not be null") @Min(value = 1990, message = "year must be 1990 or later")
         Integer year,
-        @NotNull
+        @NotNull(message = "type must not be null")
         VehicleType type,
-        @NotNull
+        @NotNull(message = "fuelType must not be null")
         FuelType fuelType,
-        @NotNull @Positive
+        @NotNull(message = "tankCapacityL must not be null") @Positive(message = "tankCapacityL must be greater than 0")
         Integer tankCapacityL
 
 ) {

@@ -18,6 +18,10 @@ public class GlobalExceptionHandler {
     // Domain errors (403, 404, 409...)
     @ExceptionHandler(ApiVehicleException.class)
     public ResponseEntity<ErrorResponse> handleApiVehicleException(ApiVehicleException ex) {
+        if (ex.getDetails() != null && !ex.getDetails().isEmpty()) {
+            return ResponseEntity.status(ex.getStatus())
+                    .body(ErrorResponse.of(ex.getCode(), ex.getMessage(), ex.getDetails()));
+        }
         return ResponseEntity.status(ex.getStatus())
                 .body(ErrorResponse.of(ex.getCode(), ex.getMessage()));
     }

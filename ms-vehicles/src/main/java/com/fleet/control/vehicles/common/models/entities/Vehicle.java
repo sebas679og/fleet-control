@@ -22,7 +22,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "/vehicles")
+@Table(name = "vehicles")
 @Entity
 public class Vehicle {
 
