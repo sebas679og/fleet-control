@@ -94,8 +94,9 @@ public interface VehicleApi {
 
   @Operation(
       summary = "Update vehicle descriptive data",
-      description = "Updates make, model, year, type, fuelType and tankCapacityL. "
-          + "It does not modify the plate, the status or the odometer.")
+      description =
+          "Updates make, model, year, type, fuelType and tankCapacityL. "
+              + "It does not modify the plate, the status or the odometer.")
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -117,9 +118,10 @@ public interface VehicleApi {
 
   @Operation(
       summary = "Change vehicle status",
-      description = "Applies an allowed status transition and optionally advances the odometer. "
-          + "Only ADMIN can reactivate OUT_OF_SERVICE to AVAILABLE. "
-          + "Internal services authenticate with X-Internal-Key as MANAGER.")
+      description =
+          "Applies an allowed status transition and optionally advances the odometer. "
+              + "Only ADMIN can reactivate OUT_OF_SERVICE to AVAILABLE. "
+              + "Internal services authenticate with X-Internal-Key as MANAGER.")
   @ApiResponses(
       value = {
         @ApiResponse(

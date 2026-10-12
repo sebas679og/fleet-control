@@ -29,9 +29,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * Request filter that authenticates callers from a valid JWT issued by ms-auth.
  *
- * <p>Each domain service validates the token on its own: the HS256 signature is
- * verified with the shared secret and the role is read from the {@code role}
- * claim. No database lookup is needed.
+ * <p>Each domain service validates the token on its own: the HS256 signature is verified with the
+ * shared secret and the role is read from the {@code role} claim. No database lookup is needed.
  */
 @Component
 @Slf4j
@@ -76,7 +75,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String role = normalizeRole(claims.get(SecurityConstants.CLAIM_ROLE, String.class));
         UsernamePasswordAuthenticationToken authToken =
             new UsernamePasswordAuthenticationToken(
-                claims.getSubject(), null,
+                claims.getSubject(),
+                null,
                 List.of(new SimpleGrantedAuthority(SecurityConstants.ROLE_PREFIX + role)));
         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -85,7 +85,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       if (log.isDebugEnabled()) {
         log.debug("Invalid or expired JWT: {}", e.getMessage());
       }
-      request.setAttribute(SecurityConstants.AUTH_ERROR_ATTRIBUTE,
+      request.setAttribute(
+          SecurityConstants.AUTH_ERROR_ATTRIBUTE,
           isExpiredCause(e) ? SecurityConstants.TOKEN_EXPIRED : null);
     }
 

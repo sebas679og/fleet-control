@@ -40,8 +40,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * Unit tests for the vehicle status user story: allowed transitions, odometer advance,
- * ADMIN-only reactivation and 404.
+ * Unit tests for the vehicle status user story: allowed transitions, odometer advance, ADMIN-only
+ * reactivation and 404.
  */
 @ExtendWith(MockitoExtension.class)
 class VehicleServiceImplStatusTest {
@@ -76,14 +76,25 @@ class VehicleServiceImplStatusTest {
 
   private VehicleResponse vehicleResponse(UUID id, VehicleStatus status, int odometerKm) {
     return new VehicleResponse(
-        id, "4821-KDF", "Ford", "Transit", VALID_YEAR, VehicleType.VAN, FuelType.DIESEL, 80,
-        odometerKm, status, null, null);
+        id,
+        "4821-KDF",
+        "Ford",
+        "Transit",
+        VALID_YEAR,
+        VehicleType.VAN,
+        FuelType.DIESEL,
+        80,
+        odometerKm,
+        status,
+        null,
+        null);
   }
 
   private void authenticateAs(String role) {
-    SecurityContextHolder.getContext().setAuthentication(
-        new UsernamePasswordAuthenticationToken(
-            "user", null, List.of(new SimpleGrantedAuthority("ROLE_" + role))));
+    SecurityContextHolder.getContext()
+        .setAuthentication(
+            new UsernamePasswordAuthenticationToken(
+                "user", null, List.of(new SimpleGrantedAuthority("ROLE_" + role))));
   }
 
   @ParameterizedTest
@@ -93,8 +104,7 @@ class VehicleServiceImplStatusTest {
     Vehicle found = vehicle(id, from, 45210);
     given(vehicleRepository.findById(id)).willReturn(Optional.of(found));
     given(vehicleRepository.save(found)).willReturn(found);
-    given(vehicleMapper.toResponse(any(Vehicle.class)))
-        .willReturn(vehicleResponse(id, to, 45210));
+    given(vehicleMapper.toResponse(any(Vehicle.class))).willReturn(vehicleResponse(id, to, 45210));
 
     VehicleResponse result = service.updateStatus(id, new UpdateStatusRequest(to, null));
 
@@ -141,8 +151,9 @@ class VehicleServiceImplStatusTest {
     var ex =
         assertThrows(
             ApiVehicleException.InvalidStatusTransitionException.class,
-            () -> service.updateStatus(
-                id, new UpdateStatusRequest(VehicleStatus.IN_MAINTENANCE, null)));
+            () ->
+                service.updateStatus(
+                    id, new UpdateStatusRequest(VehicleStatus.IN_MAINTENANCE, null)));
 
     assertThat(ex.getCode()).isEqualTo(ErrorCode.INVALID_STATUS_TRANSITION);
     assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
@@ -157,8 +168,7 @@ class VehicleServiceImplStatusTest {
 
     assertThrows(
         ApiVehicleException.InvalidStatusTransitionException.class,
-        () -> service.updateStatus(
-            id, new UpdateStatusRequest(VehicleStatus.AVAILABLE, null)));
+        () -> service.updateStatus(id, new UpdateStatusRequest(VehicleStatus.AVAILABLE, null)));
   }
 
   @Test
@@ -170,8 +180,7 @@ class VehicleServiceImplStatusTest {
     var ex =
         assertThrows(
             ApiVehicleException.InvalidOdometerException.class,
-            () -> service.updateStatus(
-                id, new UpdateStatusRequest(VehicleStatus.IN_USE, 45209)));
+            () -> service.updateStatus(id, new UpdateStatusRequest(VehicleStatus.IN_USE, 45209)));
 
     assertThat(ex.getCode()).isEqualTo(ErrorCode.INVALID_ODOMETER);
     assertThat(ex.getStatus()).isEqualTo(HttpStatus.CONFLICT);
@@ -220,8 +229,7 @@ class VehicleServiceImplStatusTest {
     var ex =
         assertThrows(
             ApiVehicleException.VehicleNotFoundException.class,
-            () -> service.updateStatus(
-                id, new UpdateStatusRequest(VehicleStatus.IN_USE, null)));
+            () -> service.updateStatus(id, new UpdateStatusRequest(VehicleStatus.IN_USE, null)));
 
     assertThat(ex.getCode()).isEqualTo(ErrorCode.VEHICLE_NOT_FOUND);
     assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);

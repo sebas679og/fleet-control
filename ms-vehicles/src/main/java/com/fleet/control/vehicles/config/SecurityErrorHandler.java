@@ -35,11 +35,17 @@ public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDen
       throws IOException {
     Object marker = request.getAttribute(SecurityConstants.AUTH_ERROR_ATTRIBUTE);
     if (SecurityConstants.TOKEN_EXPIRED.equals(marker)) {
-      write(response, HttpServletResponse.SC_UNAUTHORIZED, ErrorCode.TOKEN_EXPIRED,
+      write(
+          response,
+          HttpServletResponse.SC_UNAUTHORIZED,
+          ErrorCode.TOKEN_EXPIRED,
           "Token has expired");
       return;
     }
-    write(response, HttpServletResponse.SC_UNAUTHORIZED, ErrorCode.UNAUTHORIZED,
+    write(
+        response,
+        HttpServletResponse.SC_UNAUTHORIZED,
+        ErrorCode.UNAUTHORIZED,
         "Authentication required");
   }
 
@@ -56,12 +62,14 @@ public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDen
       HttpServletResponse response,
       AccessDeniedException accessDeniedException)
       throws IOException {
-    write(response, HttpServletResponse.SC_FORBIDDEN, ErrorCode.FORBIDDEN,
+    write(
+        response,
+        HttpServletResponse.SC_FORBIDDEN,
+        ErrorCode.FORBIDDEN,
         "You do not have permission to perform this action");
   }
 
-  private void write(
-      HttpServletResponse response, int status, ErrorCode error, String message)
+  private void write(HttpServletResponse response, int status, ErrorCode error, String message)
       throws IOException {
     response.setStatus(status);
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);

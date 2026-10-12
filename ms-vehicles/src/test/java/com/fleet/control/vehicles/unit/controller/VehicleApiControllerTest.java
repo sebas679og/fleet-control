@@ -42,8 +42,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 /**
- * HTTP contract tests for the fleet inventory user story only: 201 create / 409 duplicate, paginated
- * filtered list, detail / 404, update, and 400 VALIDATION_ERROR with details for invalid payloads.
+ * HTTP contract tests for the fleet inventory user story only: 201 create / 409 duplicate,
+ * paginated filtered list, detail / 404, update, and 400 VALIDATION_ERROR with details for invalid
+ * payloads.
  */
 @ExtendWith(MockitoExtension.class)
 class VehicleApiControllerTest {
@@ -80,8 +81,18 @@ class VehicleApiControllerTest {
 
   private VehicleResponse vehicleResponse(UUID id) {
     return new VehicleResponse(
-        id, "4821-KDF", "Ford", "Transit", VALID_YEAR, VehicleType.VAN, FuelType.DIESEL, 80, 45210,
-        VehicleStatus.AVAILABLE, null, null);
+        id,
+        "4821-KDF",
+        "Ford",
+        "Transit",
+        VALID_YEAR,
+        VehicleType.VAN,
+        FuelType.DIESEL,
+        80,
+        45210,
+        VehicleStatus.AVAILABLE,
+        null,
+        null);
   }
 
   @Test
@@ -133,8 +144,7 @@ class VehicleApiControllerTest {
         .andExpect(jsonPath("$.content[0].plate").value("4821-KDF"))
         .andExpect(jsonPath("$.totalElements").value(1));
 
-    verify(vehicleService)
-        .list(VehicleStatus.AVAILABLE, VehicleType.VAN, "4821", 0, 20);
+    verify(vehicleService).list(VehicleStatus.AVAILABLE, VehicleType.VAN, "4821", 0, 20);
   }
 
   @Test

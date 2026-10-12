@@ -8,23 +8,23 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
+/** Maps between vehicle entities and DTOs. */
 @Mapper
 public interface VehicleMapper {
 
-    VehicleResponse toResponse(Vehicle v);
+  VehicleResponse toResponse(Vehicle v);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "status", ignore = true)      // Always create in AVAILABLE status
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    Vehicle toEntity(CreateVehicleRequest r);
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "status", ignore = true) // Always create in AVAILABLE status
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
+  Vehicle toEntity(CreateVehicleRequest r);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "plate", ignore = true)
-    @Mapping(target = "odometerKm",  ignore = true)
-    @Mapping(target = "createdAt",  ignore = true)
-    @Mapping(target = "updatedAt",  ignore = true)
-    void updateEntity(UpdateVehicleRequest r, @MappingTarget Vehicle v);
-
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "status", ignore = true)
+  @Mapping(target = "plate", ignore = true)
+  @Mapping(target = "odometerKm", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
+  void updateEntity(UpdateVehicleRequest r, @MappingTarget Vehicle v);
 }

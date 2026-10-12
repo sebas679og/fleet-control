@@ -26,9 +26,9 @@ import org.springframework.stereotype.Component;
 /**
  * Demo data generator: inserts 25 deterministic vehicles when the table is empty.
  *
- * <p>Identifiers are derived from the seed ({@code vehicle-1} ... {@code vehicle-25})
- * so other services can reference the same vehicles without calling this service
- * during startup. Only runs with the {@code demo} profile.
+ * <p>Identifiers are derived from the seed ({@code vehicle-1} ... {@code vehicle-25}) so other
+ * services can reference the same vehicles without calling this service during startup. Only runs
+ * with the {@code demo} profile.
  */
 @Component
 @Profile("demo")
@@ -38,24 +38,61 @@ public class VehicleDemoSeeder implements ApplicationRunner {
 
   public static final int VEHICLE_COUNT = 25;
 
-  private static final List<VehicleType> TYPES = List.of(
-      VehicleType.CAR, VehicleType.CAR, VehicleType.CAR, VehicleType.CAR, VehicleType.CAR,
-      VehicleType.CAR, VehicleType.CAR, VehicleType.CAR, VehicleType.CAR,
-      VehicleType.VAN, VehicleType.VAN, VehicleType.VAN, VehicleType.VAN, VehicleType.VAN,
-      VehicleType.VAN, VehicleType.VAN, VehicleType.VAN, VehicleType.VAN, VehicleType.VAN,
-      VehicleType.TRUCK, VehicleType.TRUCK, VehicleType.TRUCK, VehicleType.TRUCK,
-      VehicleType.MOTORCYCLE, VehicleType.MOTORCYCLE);
+  private static final List<VehicleType> TYPES =
+      List.of(
+          VehicleType.CAR,
+          VehicleType.CAR,
+          VehicleType.CAR,
+          VehicleType.CAR,
+          VehicleType.CAR,
+          VehicleType.CAR,
+          VehicleType.CAR,
+          VehicleType.CAR,
+          VehicleType.CAR,
+          VehicleType.VAN,
+          VehicleType.VAN,
+          VehicleType.VAN,
+          VehicleType.VAN,
+          VehicleType.VAN,
+          VehicleType.VAN,
+          VehicleType.VAN,
+          VehicleType.VAN,
+          VehicleType.VAN,
+          VehicleType.VAN,
+          VehicleType.TRUCK,
+          VehicleType.TRUCK,
+          VehicleType.TRUCK,
+          VehicleType.TRUCK,
+          VehicleType.MOTORCYCLE,
+          VehicleType.MOTORCYCLE);
 
-  private static final List<VehicleStatus> STATUSES = List.of(
-      VehicleStatus.AVAILABLE, VehicleStatus.AVAILABLE, VehicleStatus.AVAILABLE,
-      VehicleStatus.AVAILABLE, VehicleStatus.AVAILABLE, VehicleStatus.AVAILABLE,
-      VehicleStatus.AVAILABLE, VehicleStatus.AVAILABLE, VehicleStatus.AVAILABLE,
-      VehicleStatus.AVAILABLE, VehicleStatus.AVAILABLE, VehicleStatus.AVAILABLE,
-      VehicleStatus.AVAILABLE, VehicleStatus.AVAILABLE,
-      VehicleStatus.IN_USE, VehicleStatus.IN_USE, VehicleStatus.IN_USE, VehicleStatus.IN_USE,
-      VehicleStatus.IN_USE, VehicleStatus.IN_USE, VehicleStatus.IN_USE, VehicleStatus.IN_USE,
-      VehicleStatus.IN_MAINTENANCE, VehicleStatus.IN_MAINTENANCE,
-      VehicleStatus.OUT_OF_SERVICE);
+  private static final List<VehicleStatus> STATUSES =
+      List.of(
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.AVAILABLE,
+          VehicleStatus.IN_USE,
+          VehicleStatus.IN_USE,
+          VehicleStatus.IN_USE,
+          VehicleStatus.IN_USE,
+          VehicleStatus.IN_USE,
+          VehicleStatus.IN_USE,
+          VehicleStatus.IN_USE,
+          VehicleStatus.IN_USE,
+          VehicleStatus.IN_MAINTENANCE,
+          VehicleStatus.IN_MAINTENANCE,
+          VehicleStatus.OUT_OF_SERVICE);
 
   private final VehicleRepository vehicleRepository;
 
@@ -77,23 +114,25 @@ public class VehicleDemoSeeder implements ApplicationRunner {
     }
   }
 
+  /** Builds the deterministic demo vehicle list. */
   public List<Vehicle> buildVehicles(Faker faker) {
     List<Vehicle> vehicles = new ArrayList<>(VEHICLE_COUNT);
     Set<String> plates = new HashSet<>();
     for (int i = 1; i <= VEHICLE_COUNT; i++) {
       VehicleType type = TYPES.get(i - 1);
-      vehicles.add(Vehicle.builder()
-          .id(UUID.nameUUIDFromBytes(("vehicle-" + i).getBytes(StandardCharsets.UTF_8)))
-          .plate(uniquePlate(faker, plates))
-          .make(makeFor(type, faker))
-          .model("Model-" + i)
-          .year(faker.number().numberBetween(2015, LocalDate.now().getYear() + 2))
-          .type(type)
-          .fuelType(fuelFor(type, faker))
-          .tankCapacityL(tankFor(type, faker))
-          .odometerKm(faker.number().numberBetween(5_000, 200_000))
-          .status(STATUSES.get(i - 1))
-          .build());
+      vehicles.add(
+          Vehicle.builder()
+              .id(UUID.nameUUIDFromBytes(("vehicle-" + i).getBytes(StandardCharsets.UTF_8)))
+              .plate(uniquePlate(faker, plates))
+              .make(makeFor(type, faker))
+              .model("Model-" + i)
+              .year(faker.number().numberBetween(2015, LocalDate.now().getYear() + 2))
+              .type(type)
+              .fuelType(fuelFor(type, faker))
+              .tankCapacityL(tankFor(type, faker))
+              .odometerKm(faker.number().numberBetween(5_000, 200_000))
+              .status(STATUSES.get(i - 1))
+              .build());
     }
     return vehicles;
   }
@@ -101,11 +140,13 @@ public class VehicleDemoSeeder implements ApplicationRunner {
   private String uniquePlate(Faker faker, Set<String> plates) {
     String plate;
     do {
-      plate = String.format("%04d-%s%s%s",
-          faker.number().numberBetween(0, 10_000),
-          faker.lorem().characters(1).toUpperCase(Locale.ROOT),
-          faker.lorem().characters(1).toUpperCase(Locale.ROOT),
-          faker.lorem().characters(1).toUpperCase(Locale.ROOT));
+      plate =
+          String.format(
+              "%04d-%s%s%s",
+              faker.number().numberBetween(0, 10_000),
+              faker.lorem().characters(1).toUpperCase(Locale.ROOT),
+              faker.lorem().characters(1).toUpperCase(Locale.ROOT),
+              faker.lorem().characters(1).toUpperCase(Locale.ROOT));
     } while (!plates.add(plate));
     return plate;
   }
@@ -123,8 +164,8 @@ public class VehicleDemoSeeder implements ApplicationRunner {
     return switch (type) {
       case TRUCK -> FuelType.DIESEL;
       case MOTORCYCLE -> faker.options().option(FuelType.GASOLINE, FuelType.HYBRID);
-      default -> faker.options().option(FuelType.DIESEL, FuelType.GASOLINE, FuelType.LPG,
-          FuelType.HYBRID);
+      default ->
+          faker.options().option(FuelType.DIESEL, FuelType.GASOLINE, FuelType.LPG, FuelType.HYBRID);
     };
   }
 

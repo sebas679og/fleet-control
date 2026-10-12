@@ -20,9 +20,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * Authenticates service-to-service calls carrying the shared internal key.
  *
- * <p>A valid key grants the caller MANAGER permissions. A wrong key is
- * fail-closed with 401; an absent key lets the request continue so the JWT
- * filter or the entry point can decide.
+ * <p>A valid key grants the caller MANAGER permissions. A wrong key is fail-closed with 401; an
+ * absent key lets the request continue so the JWT filter or the entry point can decide.
  */
 @Component
 public class InternalKeyAuthFilter extends OncePerRequestFilter {
@@ -56,9 +55,7 @@ public class InternalKeyAuthFilter extends OncePerRequestFilter {
       filterChain.doFilter(request, response);
       return;
     }
-    if (internalApiKey == null
-        || internalApiKey.isBlank()
-        || !internalApiKey.equals(provided)) {
+    if (internalApiKey == null || internalApiKey.isBlank() || !internalApiKey.equals(provided)) {
       securityErrorHandler.commence(
           request, response, new BadCredentialsException("Invalid internal key"));
       return;

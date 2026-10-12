@@ -37,8 +37,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 /**
- * HTTP contract tests for the vehicle status user story: 200 update, 400 validation,
- * 403 forbidden, 404 not found, 409 transition and 409 odometer.
+ * HTTP contract tests for the vehicle status user story: 200 update, 400 validation, 403 forbidden,
+ * 404 not found, 409 transition and 409 odometer.
  */
 @ExtendWith(MockitoExtension.class)
 class VehicleStatusControllerTest {
@@ -70,8 +70,18 @@ class VehicleStatusControllerTest {
 
   private VehicleResponse vehicleResponse(UUID id, VehicleStatus status, int odometerKm) {
     return new VehicleResponse(
-        id, "4821-KDF", "Ford", "Transit", VALID_YEAR, VehicleType.VAN, FuelType.DIESEL, 80,
-        odometerKm, status, null, null);
+        id,
+        "4821-KDF",
+        "Ford",
+        "Transit",
+        VALID_YEAR,
+        VehicleType.VAN,
+        FuelType.DIESEL,
+        80,
+        odometerKm,
+        status,
+        null,
+        null);
   }
 
   private String statusUrl(UUID id) {
@@ -147,8 +157,8 @@ class VehicleStatusControllerTest {
   void disallowedTransitionReturns409() throws Exception {
     UUID id = UUID.randomUUID();
     given(vehicleService.updateStatus(eq(id), any(UpdateStatusRequest.class)))
-        .willThrow(new ApiVehicleException.InvalidStatusTransitionException("IN_USE",
-            "IN_MAINTENANCE"));
+        .willThrow(
+            new ApiVehicleException.InvalidStatusTransitionException("IN_USE", "IN_MAINTENANCE"));
 
     mockMvc
         .perform(

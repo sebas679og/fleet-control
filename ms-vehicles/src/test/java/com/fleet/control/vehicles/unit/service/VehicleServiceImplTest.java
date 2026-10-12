@@ -55,8 +55,18 @@ class VehicleServiceImplTest {
 
   private VehicleResponse vehicleResponse(UUID id, String plate, VehicleStatus status) {
     return new VehicleResponse(
-        id, plate, "Ford", "Transit", VALID_YEAR, VehicleType.VAN, FuelType.DIESEL, 80, 45210,
-        status, null, null);
+        id,
+        plate,
+        "Ford",
+        "Transit",
+        VALID_YEAR,
+        VehicleType.VAN,
+        FuelType.DIESEL,
+        80,
+        45210,
+        status,
+        null,
+        null);
   }
 
   @Test
@@ -66,7 +76,8 @@ class VehicleServiceImplTest {
     given(vehicleRepository.existsByPlate(request.plate())).willReturn(false);
     given(vehicleMapper.toEntity(request)).willReturn(toSave);
     given(vehicleRepository.save(toSave))
-        .willReturn(Vehicle.builder().plate(request.plate()).status(VehicleStatus.AVAILABLE).build());
+        .willReturn(
+            Vehicle.builder().plate(request.plate()).status(VehicleStatus.AVAILABLE).build());
     given(vehicleMapper.toResponse(any(Vehicle.class)))
         .willReturn(vehicleResponse(UUID.randomUUID(), request.plate(), VehicleStatus.AVAILABLE));
 
@@ -98,8 +109,7 @@ class VehicleServiceImplTest {
     given(vehicleRepository.search(any(), any(), any(), any(Pageable.class))).willReturn(page);
     given(vehicleMapper.toResponse(vehicle)).willReturn(response);
 
-    var result =
-        service.list(VehicleStatus.AVAILABLE, VehicleType.VAN, "4821", 0, 20);
+    var result = service.list(VehicleStatus.AVAILABLE, VehicleType.VAN, "4821", 0, 20);
 
     assertThat(result.content()).containsExactly(response);
     ArgumentCaptor<VehicleStatus> statusCaptor = ArgumentCaptor.forClass(VehicleStatus.class);
@@ -107,7 +117,10 @@ class VehicleServiceImplTest {
     ArgumentCaptor<String> plateCaptor = ArgumentCaptor.forClass(String.class);
     verify(vehicleRepository)
         .search(
-            statusCaptor.capture(), typeCaptor.capture(), plateCaptor.capture(), any(Pageable.class));
+            statusCaptor.capture(),
+            typeCaptor.capture(),
+            plateCaptor.capture(),
+            any(Pageable.class));
     assertThat(statusCaptor.getValue()).isEqualTo(VehicleStatus.AVAILABLE);
     assertThat(typeCaptor.getValue()).isEqualTo(VehicleType.VAN);
     assertThat(plateCaptor.getValue()).isEqualTo("4821");
@@ -130,8 +143,7 @@ class VehicleServiceImplTest {
     given(vehicleRepository.findById(id)).willReturn(Optional.empty());
 
     var ex =
-        assertThrows(
-            ApiVehicleException.VehicleNotFoundException.class, () -> service.getById(id));
+        assertThrows(ApiVehicleException.VehicleNotFoundException.class, () -> service.getById(id));
 
     assertThat(ex.getCode()).isEqualTo(ErrorCode.VEHICLE_NOT_FOUND);
     assertThat(ex.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -140,8 +152,7 @@ class VehicleServiceImplTest {
   @Test
   void updateKeepsPlateStatusAndOdometer() {
     // Real mapper: proves @Mapping(ignore) on plate/status/odometer is honoured.
-    var realMapper =
-        new com.fleet.control.vehicles.common.models.mappers.VehicleMapperImpl();
+    var realMapper = new com.fleet.control.vehicles.common.models.mappers.VehicleMapperImpl();
     var serviceWithRealMapper = new VehicleServiceImpl(vehicleRepository, realMapper);
     UUID id = UUID.randomUUID();
     var stored =
@@ -186,8 +197,7 @@ class VehicleServiceImplTest {
 
     var ex =
         assertThrows(
-            ApiVehicleException.VehicleNotFoundException.class,
-            () -> service.update(id, request));
+            ApiVehicleException.VehicleNotFoundException.class, () -> service.update(id, request));
 
     assertThat(ex.getCode()).isEqualTo(ErrorCode.VEHICLE_NOT_FOUND);
   }
@@ -201,8 +211,7 @@ class VehicleServiceImplTest {
 
     var ex =
         assertThrows(
-            ApiVehicleException.InvalidVehicleYearException.class,
-            () -> service.create(request));
+            ApiVehicleException.InvalidVehicleYearException.class, () -> service.create(request));
 
     assertThat(ex.getCode()).isEqualTo(ErrorCode.VALIDATION_ERROR);
     assertThat(ex.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);

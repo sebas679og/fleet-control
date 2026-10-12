@@ -79,9 +79,11 @@ class VehicleDemoSeederTest {
     List<Vehicle> first = seeder().buildVehicles(new Faker(new Random(42L)));
     List<Vehicle> second = seeder().buildVehicles(new Faker(new Random(42L)));
 
-    assertThat(second).extracting(Vehicle::getId)
+    assertThat(second)
+        .extracting(Vehicle::getId)
         .containsExactlyElementsOf(first.stream().map(Vehicle::getId).toList());
-    assertThat(second).extracting(Vehicle::getPlate)
+    assertThat(second)
+        .extracting(Vehicle::getPlate)
         .containsExactlyElementsOf(first.stream().map(Vehicle::getPlate).toList());
     assertThat(first.get(0).getId())
         .isEqualTo(UUID.nameUUIDFromBytes("vehicle-1".getBytes(StandardCharsets.UTF_8)));

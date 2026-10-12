@@ -28,8 +28,7 @@ public class VehicleApiController implements VehicleApi {
   private final VehicleService vehicleService;
 
   @Override
-  public ResponseEntity<VehicleResponse> create(
-      @RequestBody @Valid CreateVehicleRequest request) {
+  public ResponseEntity<VehicleResponse> create(@RequestBody @Valid CreateVehicleRequest request) {
     VehicleResponse response = vehicleService.create(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
