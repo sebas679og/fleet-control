@@ -1,4 +1,4 @@
-package com.fleet.control.auth.models.dto.exceptions.response;
+package com.fleet.control.auth.common.exceptions.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -1,4 +1,4 @@
-package com.fleet.control.auth.common.exceptions;
+package com.fleet.control.auth.common.exceptions.enums;
 
 /** Machine-readable identifiers for controlled API errors. */
 public enum ErrorCode {

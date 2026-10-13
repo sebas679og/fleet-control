@@ -1,5 +1,6 @@
 package com.fleet.control.auth.common.exceptions;
 
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 /** Base exception for auth domain errors. Mirrors the ms-drivers {@code ApiException} contract. */

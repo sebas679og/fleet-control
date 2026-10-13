@@ -1,7 +1,7 @@
 package com.fleet.control.auth.service.impl;
 
 import com.fleet.control.auth.common.constants.JwtConstants;
-import com.fleet.control.auth.common.exceptions.ErrorCode;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
 import com.fleet.control.auth.models.dto.token.request.TokenPayload;
 import com.fleet.control.auth.models.dto.token.response.TokenResponse;
 import com.fleet.control.auth.service.JwtService;
@@ -44,8 +44,8 @@ public class JwtServiceImpl implements JwtService {
   /**
    * Issues a signed JWT carrying the user identity and role.
    *
-   * @param email the user email used as subject
-   * @param userId the user identifier claim
+   * @param email the user email claim
+   * @param userId the user identifier, used as subject
    * @param username the username claim
    * @param role the role claim
    * @return the token response with user data
@@ -63,9 +63,10 @@ public class JwtServiceImpl implements JwtService {
 
     String token =
         Jwts.builder()
-            .subject(email)
+            .subject(userId)
             .claim(JwtConstants.CLAIM_USER_ID, userId)
             .claim(JwtConstants.CLAIM_USERNAME, username)
+            .claim(JwtConstants.CLAIM_EMAIL, email)
             .claim(JwtConstants.CLAIM_ROLE, normalizedRole)
             .issuedAt(now)
             .expiration(expirationDate)
@@ -100,7 +101,7 @@ public class JwtServiceImpl implements JwtService {
       }
       return new TokenPayload(
           true,
-          claims.get(JwtConstants.CLAIM_USER_ID, String.class),
+          claims.getSubject(),
           claims.get(JwtConstants.CLAIM_USERNAME, String.class),
           claims.get(JwtConstants.CLAIM_ROLE, String.class),
           null,
@@ -167,13 +168,13 @@ public class JwtServiceImpl implements JwtService {
   }
 
   /**
-   * Extracts the subject (email) from a token.
+   * Extracts the subject (user id) from a token.
    *
    * @param token the JWT to read
    * @return the token subject
    */
   @Override
-  public String extractEmail(String token) {
+  public String extractUserId(String token) {
     return getClaims(token).getSubject();
   }
 }

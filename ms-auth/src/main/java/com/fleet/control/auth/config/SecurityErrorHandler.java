@@ -2,8 +2,8 @@ package com.fleet.control.auth.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fleet.control.auth.common.exceptions.ErrorCode;
-import com.fleet.control.auth.models.dto.exceptions.response.ErrorResponse;
+import com.fleet.control.auth.common.exceptions.dto.ErrorResponse;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;

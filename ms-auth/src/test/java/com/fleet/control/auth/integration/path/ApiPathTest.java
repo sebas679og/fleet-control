@@ -19,9 +19,17 @@ class ApiPathTest {
   @Test
   void publicEndpointsCoverAuthenticationFlow() {
     assertArrayEquals(
-        new String[] {
-          ApiPaths.REGISTER_ENDPOINT, ApiPaths.LOGIN_ENDPOINT, ApiPaths.VALIDATE_ENDPOINT
-        },
+        new String[] {ApiPaths.REGISTER_ENDPOINT, ApiPaths.LOGIN_ENDPOINT},
         ApiPaths.PUBLIC_AUTH_ENDPOINTS);
+  }
+
+  @Test
+  void validateEndpointIsInternal() {
+    assertEquals("/api/auth/validate", ApiPaths.VALIDATE_ENDPOINT);
+    for (String endpoint : ApiPaths.PUBLIC_AUTH_ENDPOINTS) {
+      if (ApiPaths.VALIDATE_ENDPOINT.equals(endpoint)) {
+        throw new AssertionError("Validate endpoint must not be public");
+      }
+    }
   }
 }

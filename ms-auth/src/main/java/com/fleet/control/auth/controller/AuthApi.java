@@ -1,7 +1,7 @@
 package com.fleet.control.auth.controller;
 
+import com.fleet.control.auth.common.exceptions.dto.ErrorResponse;
 import com.fleet.control.auth.common.path.ApiPaths;
-import com.fleet.control.auth.models.dto.exceptions.response.ErrorResponse;
 import com.fleet.control.auth.models.dto.token.request.TokenPayload;
 import com.fleet.control.auth.models.dto.token.response.TokenResponse;
 import com.fleet.control.auth.models.dto.user.request.LoginRequest;

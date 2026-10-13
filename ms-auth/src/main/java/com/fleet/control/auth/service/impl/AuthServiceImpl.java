@@ -1,10 +1,10 @@
 package com.fleet.control.auth.service.impl;
 
 import com.fleet.control.auth.common.constants.JwtConstants;
-import com.fleet.control.auth.common.exceptions.DuplicateEmailException;
-import com.fleet.control.auth.common.exceptions.ErrorCode;
-import com.fleet.control.auth.common.exceptions.InvalidCredentialsException;
-import com.fleet.control.auth.common.exceptions.TokenInvalidException;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
+import com.fleet.control.auth.common.exceptions.exception.DuplicateEmailException;
+import com.fleet.control.auth.common.exceptions.exception.InvalidCredentialsException;
+import com.fleet.control.auth.common.exceptions.exception.TokenInvalidException;
 import com.fleet.control.auth.models.dto.token.request.TokenPayload;
 import com.fleet.control.auth.models.dto.token.response.TokenResponse;
 import com.fleet.control.auth.models.dto.user.request.LoginRequest;

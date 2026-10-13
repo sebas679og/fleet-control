@@ -7,8 +7,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fleet.control.auth.common.exceptions.DuplicateEmailException;
-import com.fleet.control.auth.common.exceptions.InvalidCredentialsException;
+import com.fleet.control.auth.common.exceptions.exception.DuplicateEmailException;
+import com.fleet.control.auth.common.exceptions.exception.InvalidCredentialsException;
 import com.fleet.control.auth.models.dto.user.request.LoginRequest;
 import com.fleet.control.auth.models.dto.user.request.RegisterRequest;
 import com.fleet.control.auth.models.dto.user.response.RegisterResponse;

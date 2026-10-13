@@ -1,4 +1,4 @@
-package com.fleet.control.auth.common.exceptions;
+package com.fleet.control.auth.common.exceptions.exception;
 
 /** Thrown manually from services for single-field validation failures. */
 public class ValidationException extends RuntimeException {

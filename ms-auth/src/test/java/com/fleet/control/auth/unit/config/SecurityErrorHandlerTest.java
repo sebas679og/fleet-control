@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fleet.control.auth.common.exceptions.ErrorCode;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
 import com.fleet.control.auth.config.SecurityErrorHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;

@@ -1,6 +1,7 @@
 package com.fleet.control.auth.config;
 
 import com.fleet.control.auth.common.constants.HeaderConstants;
+import com.fleet.control.auth.common.path.ApiPaths;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,7 +45,9 @@ public class InternalKeyAuthFilter extends OncePerRequestFilter {
       @NonNull FilterChain filterChain)
       throws ServletException, IOException {
     String path = request.getServletPath();
-    if (!"/internal".equals(path) && !path.startsWith("/internal/")) {
+    if (!"/internal".equals(path)
+        && !path.startsWith("/internal/")
+        && !ApiPaths.VALIDATE_ENDPOINT.equals(path)) {
       filterChain.doFilter(request, response);
       return;
     }

@@ -4,16 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fleet.control.auth.common.exceptions.AccessDeniedException;
 import com.fleet.control.auth.common.exceptions.ApiException;
-import com.fleet.control.auth.common.exceptions.DuplicateEmailException;
-import com.fleet.control.auth.common.exceptions.DuplicateUsernameException;
-import com.fleet.control.auth.common.exceptions.ErrorCode;
 import com.fleet.control.auth.common.exceptions.GlobalExceptionHandler;
-import com.fleet.control.auth.common.exceptions.InvalidCredentialsException;
-import com.fleet.control.auth.common.exceptions.TokenInvalidException;
-import com.fleet.control.auth.common.exceptions.ValidationException;
-import com.fleet.control.auth.models.dto.exceptions.response.ErrorResponse;
+import com.fleet.control.auth.common.exceptions.dto.ErrorResponse;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
+import com.fleet.control.auth.common.exceptions.exception.AccessDeniedException;
+import com.fleet.control.auth.common.exceptions.exception.DuplicateEmailException;
+import com.fleet.control.auth.common.exceptions.exception.DuplicateUsernameException;
+import com.fleet.control.auth.common.exceptions.exception.InvalidCredentialsException;
+import com.fleet.control.auth.common.exceptions.exception.TokenInvalidException;
+import com.fleet.control.auth.common.exceptions.exception.ValidationException;
 import com.fleet.control.auth.models.dto.token.request.TokenPayload;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -119,7 +119,7 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
-  void genericFailureMapsToInternalError() {
+  void genericFailureMapsToInternalError() throws Exception {
     ResponseEntity<ErrorResponse> response = handler.handleGeneric(new RuntimeException("boom"));
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());

@@ -10,8 +10,8 @@ public interface JwtService {
   /**
    * Issues a signed JWT carrying the user identity and role.
    *
-   * @param email the user email used as subject
-   * @param userId the user identifier claim
+   * @param email the user email claim
+   * @param userId the user identifier, used as subject
    * @param username the username claim
    * @param role the role claim
    * @return the token response with user data
@@ -51,10 +51,10 @@ public interface JwtService {
   String extractRole(String token);
 
   /**
-   * Extracts the subject (email) from a token.
+   * Extracts the subject (user id) from a token.
    *
    * @param token the JWT to read
    * @return the token subject
    */
-  String extractEmail(String token);
+  String extractUserId(String token);
 }

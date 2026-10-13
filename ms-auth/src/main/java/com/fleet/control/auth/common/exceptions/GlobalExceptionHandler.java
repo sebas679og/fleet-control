@@ -1,6 +1,9 @@
 package com.fleet.control.auth.common.exceptions;
 
-import com.fleet.control.auth.models.dto.exceptions.response.ErrorResponse;
+import com.fleet.control.auth.common.exceptions.dto.ErrorResponse;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
+import com.fleet.control.auth.common.exceptions.exception.TokenInvalidException;
+import com.fleet.control.auth.common.exceptions.exception.ValidationException;
 import com.fleet.control.auth.models.dto.token.request.TokenPayload;
 import io.jsonwebtoken.ExpiredJwtException;
 import java.time.Instant;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * Maps controlled exceptions to the API error contract (ms-drivers architecture).
@@ -59,9 +63,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(AuthenticationException.class)
   public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
     return buildResponse(
-        ErrorCode.UNAUTHORIZED,
-        "Missing or invalid authentication token",
-        HttpStatus.UNAUTHORIZED);
+        ErrorCode.UNAUTHORIZED, "Missing or invalid authentication token", HttpStatus.UNAUTHORIZED);
   }
 
   // Spring Security access denials (403).
@@ -100,23 +102,22 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<ErrorResponse> handleUnreadable(HttpMessageNotReadableException ex) {
     return buildResponse(
-        ErrorCode.VALIDATION_ERROR,
-        "Request contains invalid fields",
-        HttpStatus.BAD_REQUEST);
+        ErrorCode.VALIDATION_ERROR, "Request contains invalid fields", HttpStatus.BAD_REQUEST);
   }
 
   // Missing Authorization header (401).
   @ExceptionHandler(MissingRequestHeaderException.class)
   public ResponseEntity<ErrorResponse> handleMissingHeader(MissingRequestHeaderException ex) {
     return buildResponse(
-        ErrorCode.UNAUTHORIZED,
-        "Missing required header: Authorization",
-        HttpStatus.UNAUTHORIZED);
+        ErrorCode.UNAUTHORIZED, "Missing required header: Authorization", HttpStatus.UNAUTHORIZED);
   }
 
-  // Fallback (500).
+  // Fallback (500). Unknown paths are rethrown so Spring renders 404 instead of 500.
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
+  public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) throws Exception {
+    if (ex instanceof NoResourceFoundException) {
+      throw ex;
+    }
     return buildResponse(
         ErrorCode.INTERNAL_ERROR, "Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
   }
@@ -124,7 +125,11 @@ public class GlobalExceptionHandler {
   private ResponseEntity<ErrorResponse> buildResponse(
       ErrorCode error, String message, HttpStatus status) {
     ErrorResponse errorResponse =
-        ErrorResponse.builder().error(error.name()).message(message).timestamp(Instant.now()).build();
+        ErrorResponse.builder()
+            .error(error.name())
+            .message(message)
+            .timestamp(Instant.now())
+            .build();
     return ResponseEntity.status(status).body(errorResponse);
   }
 

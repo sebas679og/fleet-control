@@ -1,5 +1,7 @@
-package com.fleet.control.auth.common.exceptions;
+package com.fleet.control.auth.common.exceptions.exception;
 
+import com.fleet.control.auth.common.exceptions.ApiException;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 /** Thrown when a JWT is invalid or expired during explicit validation. */

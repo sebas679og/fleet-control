@@ -9,11 +9,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fleet.control.auth.common.exceptions.DuplicateEmailException;
-import com.fleet.control.auth.common.exceptions.ErrorCode;
 import com.fleet.control.auth.common.exceptions.GlobalExceptionHandler;
-import com.fleet.control.auth.common.exceptions.InvalidCredentialsException;
-import com.fleet.control.auth.common.exceptions.TokenInvalidException;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
+import com.fleet.control.auth.common.exceptions.exception.DuplicateEmailException;
+import com.fleet.control.auth.common.exceptions.exception.InvalidCredentialsException;
+import com.fleet.control.auth.common.exceptions.exception.TokenInvalidException;
 import com.fleet.control.auth.common.path.ApiPaths;
 import com.fleet.control.auth.controller.impl.AuthApiController;
 import com.fleet.control.auth.models.dto.user.request.LoginRequest;
@@ -134,8 +134,7 @@ class AuthApiControllerTest {
   void loginWithInvalidCredentialsReturns401() throws Exception {
     var request =
         LoginRequest.builder().email("john.doe@example.com").password("WrongPass123!").build();
-    given(authService.login(any(LoginRequest.class)))
-        .willThrow(new InvalidCredentialsException());
+    given(authService.login(any(LoginRequest.class))).willThrow(new InvalidCredentialsException());
 
     mockMvc
         .perform(
@@ -157,8 +156,7 @@ class AuthApiControllerTest {
   @Test
   void validateWithInvalidTokenReturns401Payload() throws Exception {
     given(authService.validateToken("Bearer bad-token"))
-        .willThrow(
-            new TokenInvalidException(ErrorCode.INVALID_TOKEN, "The token is invalid"));
+        .willThrow(new TokenInvalidException(ErrorCode.INVALID_TOKEN, "The token is invalid"));
 
     mockMvc
         .perform(

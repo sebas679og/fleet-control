@@ -5,7 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import com.fleet.control.auth.common.exceptions.ErrorCode;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
+import com.fleet.control.auth.config.CustomUserDetailsService;
 import com.fleet.control.auth.config.JwtAuthFilter;
 import com.fleet.control.auth.config.SecurityErrorHandler;
 import com.fleet.control.auth.service.JwtService;
@@ -14,6 +15,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +27,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 /** Unit tests for the JWT request filter authentication paths. */
@@ -33,7 +34,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 class JwtAuthFilterTest {
 
   @Mock private JwtService jwtService;
-  @Mock private UserDetailsService userDetailsService;
+  @Mock private CustomUserDetailsService userDetailsService;
   @Mock private HttpServletRequest request;
   @Mock private HttpServletResponse response;
   @Mock private FilterChain filterChain;
@@ -73,7 +74,7 @@ class JwtAuthFilterTest {
   @Test
   void doFilterWithInvalidJwtPassesThrough() throws Exception {
     given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer bad-token");
-    given(jwtService.extractEmail("bad-token")).willThrow(new RuntimeException("Invalid JWT"));
+    given(jwtService.extractUserId("bad-token")).willThrow(new RuntimeException("Invalid JWT"));
 
     filter.doFilter(request, response, filterChain);
 
@@ -84,7 +85,7 @@ class JwtAuthFilterTest {
   @Test
   void doFilterWithExpiredJwtPassesThrough() throws Exception {
     given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer expired-token");
-    given(jwtService.extractEmail("expired-token"))
+    given(jwtService.extractUserId("expired-token"))
         .willThrow(
             new IllegalArgumentException(
                 "Invalid or expired JWT", new ExpiredJwtException(null, null, "JWT expired")));
@@ -98,9 +99,11 @@ class JwtAuthFilterTest {
   @Test
   void doFilterWithValidJwtSetsAuthentication() throws Exception {
     given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer valid-token");
-    given(jwtService.extractEmail("valid-token")).willReturn("user@example.com");
+    given(jwtService.extractUserId("valid-token"))
+        .willReturn("550e8400-e29b-41d4-a716-446655440000");
     var userDetails = new User("user@example.com", "pass", List.of());
-    given(userDetailsService.loadUserByUsername("user@example.com")).willReturn(userDetails);
+    given(userDetailsService.loadUserById(UUID.fromString("550e8400-e29b-41d4-a716-446655440000")))
+        .willReturn(userDetails);
 
     filter.doFilter(request, response, filterChain);
 
@@ -125,8 +128,9 @@ class JwtAuthFilterTest {
   @Test
   void doFilterWhenUserNotFoundPropagatesException() {
     given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer valid-token");
-    given(jwtService.extractEmail("valid-token")).willReturn("unknown@example.com");
-    given(userDetailsService.loadUserByUsername("unknown@example.com"))
+    given(jwtService.extractUserId("valid-token"))
+        .willReturn("00000000-0000-0000-0000-000000000000");
+    given(userDetailsService.loadUserById(UUID.fromString("00000000-0000-0000-0000-000000000000")))
         .willThrow(new UsernameNotFoundException("User not found"));
 
     assertThatThrownBy(() -> filter.doFilter(request, response, filterChain))
@@ -136,7 +140,7 @@ class JwtAuthFilterTest {
   @Test
   void doFilterWithInvalidJwtMarksUnauthorized() throws Exception {
     given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer bad-token");
-    given(jwtService.extractEmail("bad-token")).willThrow(new RuntimeException("Invalid JWT"));
+    given(jwtService.extractUserId("bad-token")).willThrow(new RuntimeException("Invalid JWT"));
 
     filter.doFilter(request, response, filterChain);
 
@@ -148,7 +152,7 @@ class JwtAuthFilterTest {
   @Test
   void doFilterWithExpiredJwtMarksTokenExpired() throws Exception {
     given(request.getHeader(HttpHeaders.AUTHORIZATION)).willReturn("Bearer expired-token");
-    given(jwtService.extractEmail("expired-token"))
+    given(jwtService.extractUserId("expired-token"))
         .willThrow(
             new IllegalArgumentException(
                 "Invalid or expired JWT", new ExpiredJwtException(null, null, "JWT expired")));

@@ -16,7 +16,5 @@ public class ApiPaths {
   public static final String VALIDATE_ENDPOINT = AUTH_BASE + VALIDATE;
   public static final String USERS_ENDPOINT = AUTH_BASE + USERS;
 
-  public static final String[] PUBLIC_AUTH_ENDPOINTS = {
-    REGISTER_ENDPOINT, LOGIN_ENDPOINT, VALIDATE_ENDPOINT
-  };
+  public static final String[] PUBLIC_AUTH_ENDPOINTS = {REGISTER_ENDPOINT, LOGIN_ENDPOINT};
 }
