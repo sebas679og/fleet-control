@@ -7,6 +7,7 @@ import com.fleet.control.vehicles.common.models.dtos.response.PageResponse;
 import com.fleet.control.vehicles.common.models.dtos.response.VehicleResponse;
 import com.fleet.control.vehicles.common.models.enums.VehicleStatus;
 import com.fleet.control.vehicles.common.models.enums.VehicleType;
+
 import java.util.UUID;
 
 /** Service contract for vehicle operations. */
@@ -15,7 +16,8 @@ public interface VehicleService {
   VehicleResponse create(CreateVehicleRequest request);
 
   PageResponse<VehicleResponse> list(
-      VehicleStatus status, VehicleType vehicleType, String plate, int page, int size);
+      VehicleStatus status, VehicleType vehicleType,
+      String plate, int page, int size);
 
   VehicleResponse getById(UUID id);
 

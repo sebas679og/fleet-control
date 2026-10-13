@@ -8,7 +8,7 @@ import com.fleet.control.vehicles.common.models.dtos.response.PageResponse;
 import com.fleet.control.vehicles.common.models.dtos.response.VehicleResponse;
 import com.fleet.control.vehicles.common.models.enums.VehicleStatus;
 import com.fleet.control.vehicles.common.models.enums.VehicleType;
-import com.fleet.control.vehicles.exceptions.dto.ErrorResponse;
+import com.fleet.control.vehicles.common.exceptions.dto.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

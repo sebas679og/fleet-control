@@ -1,12 +1,15 @@
-package com.fleet.control.vehicles.exceptions;
+package com.fleet.control.vehicles.common.exceptions;
 
-import com.fleet.control.vehicles.exceptions.dto.ErrorResponse;
-import com.fleet.control.vehicles.exceptions.enums.ErrorCode;
+import com.fleet.control.vehicles.common.exceptions.dto.ErrorResponse;
+import com.fleet.control.vehicles.common.exceptions.enums.ErrorCode;
 import java.util.List;
 import java.util.UUID;
+
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /** Base exception for vehicle domain errors. */
+@Getter
 public class ApiVehicleException extends RuntimeException {
 
   private final ErrorCode code;
@@ -14,7 +17,8 @@ public class ApiVehicleException extends RuntimeException {
   private final List<ErrorResponse.Detail> details;
 
   /** Creates an exception without field details. */
-  public ApiVehicleException(ErrorCode code, HttpStatus status, String message) {
+  public ApiVehicleException(ErrorCode code, HttpStatus status, String message)
+  {
     this(code, status, message, null);
   }
 
@@ -27,19 +31,7 @@ public class ApiVehicleException extends RuntimeException {
     this.details = details;
   }
 
-  public ErrorCode getCode() {
-    return code;
-  }
-
-  public HttpStatus getStatus() {
-    return status;
-  }
-
-  public List<ErrorResponse.Detail> getDetails() {
-    return details;
-  }
-
-  // 404
+    // 404
   /** Thrown when a vehicle is not found. */
   public static class VehicleNotFoundException extends ApiVehicleException {
     /** Creates the exception for the given id. */

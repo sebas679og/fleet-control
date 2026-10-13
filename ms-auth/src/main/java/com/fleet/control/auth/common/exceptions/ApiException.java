@@ -1,0 +1,24 @@
+package com.fleet.control.auth.common.exceptions;
+
+import org.springframework.http.HttpStatus;
+
+/** Base exception for auth domain errors. Mirrors the ms-drivers {@code ApiException} contract. */
+public class ApiException extends RuntimeException {
+
+  private final ErrorCode code;
+  private final HttpStatus status;
+
+  public ApiException(ErrorCode code, HttpStatus status, String message) {
+    super(message);
+    this.code = code;
+    this.status = status;
+  }
+
+  public ErrorCode getCode() {
+    return code;
+  }
+
+  public HttpStatus getStatus() {
+    return status;
+  }
+}

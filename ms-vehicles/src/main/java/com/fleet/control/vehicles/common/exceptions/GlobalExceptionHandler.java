@@ -1,7 +1,7 @@
-package com.fleet.control.vehicles.exceptions;
+package com.fleet.control.vehicles.common.exceptions;
 
-import com.fleet.control.vehicles.exceptions.dto.ErrorResponse;
-import com.fleet.control.vehicles.exceptions.enums.ErrorCode;
+import com.fleet.control.vehicles.common.exceptions.dto.ErrorResponse;
+import com.fleet.control.vehicles.common.exceptions.enums.ErrorCode;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

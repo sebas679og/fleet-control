@@ -2,8 +2,7 @@ package com.fleet.control.auth.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fleet.control.auth.common.exceptions.ErrorCodes;
-import com.fleet.control.auth.common.exceptions.ErrorMessages;
+import com.fleet.control.auth.common.exceptions.ErrorCode;
 import com.fleet.control.auth.models.dto.exceptions.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,19 +42,19 @@ public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDen
       AuthenticationException authException)
       throws IOException {
     Object marker = request.getAttribute(AUTH_ERROR_ATTRIBUTE);
-    if (ErrorCodes.TOKEN_EXPIRED.equals(marker)) {
+    if (ErrorCode.TOKEN_EXPIRED.equals(marker)) {
       write(
           response,
           HttpServletResponse.SC_UNAUTHORIZED,
-          ErrorCodes.TOKEN_EXPIRED,
-          ErrorMessages.TOKEN_EXPIRED);
+          ErrorCode.TOKEN_EXPIRED,
+          "The token has expired");
       return;
     }
     write(
         response,
         HttpServletResponse.SC_UNAUTHORIZED,
-        ErrorCodes.UNAUTHORIZED,
-        ErrorMessages.UNAUTHORIZED);
+        ErrorCode.UNAUTHORIZED,
+        "Missing or invalid authentication token");
   }
 
   /**
@@ -72,13 +71,20 @@ public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDen
       AccessDeniedException accessDeniedException)
       throws IOException {
     write(
-        response, HttpServletResponse.SC_FORBIDDEN, ErrorCodes.FORBIDDEN, ErrorMessages.FORBIDDEN);
+        response,
+        HttpServletResponse.SC_FORBIDDEN,
+        ErrorCode.FORBIDDEN,
+        "Access denied: insufficient permissions");
   }
 
-  private void write(HttpServletResponse response, int status, String error, String message)
+  private void write(HttpServletResponse response, int status, ErrorCode error, String message)
       throws IOException {
     ErrorResponse errorResponse =
-        ErrorResponse.builder().error(error).message(message).timestamp(Instant.now()).build();
+        ErrorResponse.builder()
+            .error(error.name())
+            .message(message)
+            .timestamp(Instant.now())
+            .build();
     response.setStatus(status);
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     objectMapper.writeValue(response.getOutputStream(), errorResponse);

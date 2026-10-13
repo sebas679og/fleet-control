@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fleet.control.auth.common.exceptions.ErrorCodes;
+import com.fleet.control.auth.common.exceptions.ErrorCode;
 import com.fleet.control.auth.models.dto.token.request.TokenPayload;
 import com.fleet.control.auth.models.dto.token.response.TokenResponse;
 import com.fleet.control.auth.service.impl.JwtServiceImpl;
@@ -51,6 +51,6 @@ class JwtServiceImplTest {
     TokenPayload payload = jwtService.validateToken(response.token());
 
     assertEquals(false, payload.valid());
-    assertEquals(ErrorCodes.TOKEN_EXPIRED, payload.error());
+    assertEquals(ErrorCode.TOKEN_EXPIRED.name(), payload.error());
   }
 }

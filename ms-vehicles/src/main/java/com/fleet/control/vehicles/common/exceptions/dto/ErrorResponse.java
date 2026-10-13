@@ -1,6 +1,6 @@
-package com.fleet.control.vehicles.exceptions.dto;
+package com.fleet.control.vehicles.common.exceptions.dto;
 
-import com.fleet.control.vehicles.exceptions.enums.ErrorCode;
+import com.fleet.control.vehicles.common.exceptions.enums.ErrorCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;

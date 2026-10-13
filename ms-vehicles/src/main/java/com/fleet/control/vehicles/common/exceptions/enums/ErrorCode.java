@@ -1,4 +1,4 @@
-package com.fleet.control.vehicles.exceptions.enums;
+package com.fleet.control.vehicles.common.exceptions.enums;
 
 /** Error codes for vehicle operations. */
 public enum ErrorCode {

@@ -7,7 +7,8 @@
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.1.1</version>
 		<relativePath /> <!-- lookup parent from repository -->
-	</parent>
+    </parent>
+    <groupId>com.fleetcontrol</groupId>
 	<artifactId>ms-vehicles</artifactId>
 	<version>0.0.1</version>
 	<name/>

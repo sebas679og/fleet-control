@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-import com.fleet.control.auth.common.exceptions.ErrorCodes;
+import com.fleet.control.auth.common.exceptions.ErrorCode;
 import com.fleet.control.auth.config.JwtAuthFilter;
 import com.fleet.control.auth.config.SecurityErrorHandler;
 import com.fleet.control.auth.service.JwtService;
@@ -142,7 +142,7 @@ class JwtAuthFilterTest {
 
     then(request)
         .should()
-        .setAttribute(SecurityErrorHandler.AUTH_ERROR_ATTRIBUTE, ErrorCodes.UNAUTHORIZED);
+        .setAttribute(SecurityErrorHandler.AUTH_ERROR_ATTRIBUTE, ErrorCode.UNAUTHORIZED);
   }
 
   @Test
@@ -157,7 +157,7 @@ class JwtAuthFilterTest {
 
     then(request)
         .should()
-        .setAttribute(SecurityErrorHandler.AUTH_ERROR_ATTRIBUTE, ErrorCodes.TOKEN_EXPIRED);
+        .setAttribute(SecurityErrorHandler.AUTH_ERROR_ATTRIBUTE, ErrorCode.TOKEN_EXPIRED);
     assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
   }
 }

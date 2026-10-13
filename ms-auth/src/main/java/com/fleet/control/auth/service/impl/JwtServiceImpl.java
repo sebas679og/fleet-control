@@ -1,8 +1,7 @@
 package com.fleet.control.auth.service.impl;
 
 import com.fleet.control.auth.common.constants.JwtConstants;
-import com.fleet.control.auth.common.exceptions.ErrorCodes;
-import com.fleet.control.auth.common.exceptions.ErrorMessages;
+import com.fleet.control.auth.common.exceptions.ErrorCode;
 import com.fleet.control.auth.models.dto.token.request.TokenPayload;
 import com.fleet.control.auth.models.dto.token.response.TokenResponse;
 import com.fleet.control.auth.service.JwtService;
@@ -97,7 +96,7 @@ public class JwtServiceImpl implements JwtService {
           Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
       if (claims.getExpiration().before(new Date())) {
         return new TokenPayload(
-            false, null, null, null, ErrorCodes.TOKEN_EXPIRED, ErrorMessages.TOKEN_EXPIRED);
+            false, null, null, null, ErrorCode.TOKEN_EXPIRED.name(), "The token has expired");
       }
       return new TokenPayload(
           true,
@@ -108,13 +107,13 @@ public class JwtServiceImpl implements JwtService {
           null);
     } catch (ExpiredJwtException e) {
       return new TokenPayload(
-          false, null, null, null, ErrorCodes.TOKEN_EXPIRED, ErrorMessages.TOKEN_EXPIRED);
+          false, null, null, null, ErrorCode.TOKEN_EXPIRED.name(), "The token has expired");
     } catch (Exception e) {
       if (LOGGER.isWarnEnabled()) {
         LOGGER.warn("Invalid JWT: {}", e.getMessage());
       }
       return new TokenPayload(
-          false, null, null, null, ErrorCodes.INVALID_TOKEN, ErrorMessages.INVALID_TOKEN);
+          false, null, null, null, ErrorCode.INVALID_TOKEN.name(), "The token is invalid");
     }
   }
 

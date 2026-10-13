@@ -2,8 +2,7 @@ package com.fleet.control.auth.service.impl;
 
 import com.fleet.control.auth.common.constants.JwtConstants;
 import com.fleet.control.auth.common.exceptions.DuplicateEmailException;
-import com.fleet.control.auth.common.exceptions.ErrorCodes;
-import com.fleet.control.auth.common.exceptions.ErrorMessages;
+import com.fleet.control.auth.common.exceptions.ErrorCode;
 import com.fleet.control.auth.common.exceptions.InvalidCredentialsException;
 import com.fleet.control.auth.common.exceptions.TokenInvalidException;
 import com.fleet.control.auth.models.dto.token.request.TokenPayload;
@@ -48,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
   public RegisterResponse createUser(RegisterRequest registerRequest) {
     if (userEntityRepository.existsByEmailOrUsername(
         registerRequest.email(), registerRequest.username())) {
-      throw new DuplicateEmailException(ErrorMessages.USER_ALREADY_EXISTS);
+      throw new DuplicateEmailException();
     }
 
     UserEntity user = userMapper.toUserEntity(registerRequest);
@@ -85,7 +84,7 @@ public class AuthServiceImpl implements AuthService {
       return jwtService.generateToken(
           user.getEmail(), user.getId().toString(), user.getUsername(), user.getRole().name());
     } catch (BadCredentialsException e) {
-      throw new InvalidCredentialsException(ErrorMessages.INVALID_CREDENTIALS);
+      throw new InvalidCredentialsException();
     }
   }
 
@@ -98,13 +97,22 @@ public class AuthServiceImpl implements AuthService {
   @Override
   public TokenPayload validateToken(String authHeader) {
     if (authHeader == null || authHeader.isBlank()) {
-      throw new TokenInvalidException(ErrorCodes.INVALID_TOKEN, ErrorMessages.UNAUTHORIZED);
+      throw new TokenInvalidException(
+          ErrorCode.INVALID_TOKEN, "Missing or invalid authentication token");
     }
     String token = authHeader.replace(JwtConstants.BEARER_PREFIX, "").trim();
     TokenPayload payload = jwtService.validateToken(token);
     if (!payload.valid()) {
-      throw new TokenInvalidException(payload.error(), payload.message());
+      throw new TokenInvalidException(resolveErrorCode(payload.error()), payload.message());
     }
     return payload;
+  }
+
+  private static ErrorCode resolveErrorCode(String error) {
+    try {
+      return ErrorCode.valueOf(error);
+    } catch (IllegalArgumentException | NullPointerException e) {
+      return ErrorCode.INVALID_TOKEN;
+    }
   }
 }

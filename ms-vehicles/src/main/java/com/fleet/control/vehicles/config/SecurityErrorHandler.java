@@ -2,8 +2,8 @@ package com.fleet.control.vehicles.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fleet.control.vehicles.exceptions.dto.ErrorResponse;
-import com.fleet.control.vehicles.exceptions.enums.ErrorCode;
+import com.fleet.control.vehicles.common.exceptions.dto.ErrorResponse;
+import com.fleet.control.vehicles.common.exceptions.enums.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;

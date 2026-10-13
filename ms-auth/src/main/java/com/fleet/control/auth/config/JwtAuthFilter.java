@@ -1,7 +1,7 @@
 package com.fleet.control.auth.config;
 
 import com.fleet.control.auth.common.constants.JwtConstants;
-import com.fleet.control.auth.common.exceptions.ErrorCodes;
+import com.fleet.control.auth.common.exceptions.ErrorCode;
 import com.fleet.control.auth.service.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -60,7 +60,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       // email here always means a live token and no further expiry check is needed.
       request.setAttribute(
           SecurityErrorHandler.AUTH_ERROR_ATTRIBUTE,
-          isExpiredCause(e) ? ErrorCodes.TOKEN_EXPIRED : ErrorCodes.UNAUTHORIZED);
+          isExpiredCause(e) ? ErrorCode.TOKEN_EXPIRED : ErrorCode.UNAUTHORIZED);
       filterChain.doFilter(request, response);
       return;
     }
