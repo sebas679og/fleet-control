@@ -7,6 +7,7 @@ import com.fleet.control.drivers.models.dtos.response.PageResponse;
 import com.fleet.control.drivers.models.enums.DriverStatus;
 import java.util.UUID;
 
+/** Driver management operations: create, list, detail and update. */
 public interface DriverService {
 
   DriverResponse create(CreateDriverRequest request);

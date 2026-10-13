@@ -11,6 +11,15 @@ The `ms-drivers` service manages fleet drivers, their driving license and their 
 
 ---
 
+## Authentication
+
+Every endpoint requires authentication, either with a `Bearer` JWT issued by `ms-auth`
+(`MANAGER` or `ADMIN` role) or with the shared `X-Internal-Key` header for
+service-to-service calls (grants `MANAGER` permissions). Without credentials the service
+returns `401 UNAUTHORIZED`; an expired token returns `401 TOKEN_EXPIRED`.
+
+---
+
 ## Data Model
 
 ### Entity: `Driver`
@@ -113,9 +122,8 @@ DriverStatus:    ACTIVE, ON_LEAVE, SUSPENDED
 **Response `404 Not Found`:**
 ```json
 {
-  "code": 404,
-  "name": "DRIVER_NOT_FOUND",
-  "description": "No driver exists with the provided ID",
+  "error": "DRIVER_NOT_FOUND",
+  "message": "Driver not found: 3b2d8f10-7c4a-4e55-b1a0-5d9e2c7f1a99",
   "timestamp": "2026-10-05T10:30:00Z"
 }
 ```
@@ -149,17 +157,16 @@ DriverStatus:    ACTIVE, ON_LEAVE, SUSPENDED
 
 **Error responses:**
 
-| Status | `name`                  | Description                                      |
+| Status | `error`                 | Description                                      |
 |--------|-------------------------|--------------------------------------------------|
-| 409    | `DRIVER_ALREADY_EXISTS` | A driver with that license number already exists |
+| 409    | `DRIVER_ALREADY_EXIST`  | A driver with that license number already exists |
 | 400    | `VALIDATION_ERROR`      | One or more fields are invalid                   |
 
 **Response `409 Conflict`:**
 ```json
 {
-  "code": 409,
-  "name": "DRIVER_ALREADY_EXISTS",
-  "description": "A driver with that license number already exists",
+  "error": "DRIVER_ALREADY_EXIST",
+  "message": "Driver already exists with license number: B-5120377",
   "timestamp": "2026-10-05T10:30:00Z"
 }
 ```
@@ -189,21 +196,22 @@ DriverStatus:    ACTIVE, ON_LEAVE, SUSPENDED
 
 **Error responses:**
 
-| Status | `name`                  | Description                                  |
+| Status | `error`                 | Description                                  |
 |--------|-------------------------|----------------------------------------------|
 | 404    | `DRIVER_NOT_FOUND`      | No driver exists with the provided ID        |
-| 409    | `DRIVER_ALREADY_EXISTS` | The license number belongs to another driver |
+| 409    | `DRIVER_ALREADY_EXIST`  | The license number belongs to another driver |
 | 400    | `VALIDATION_ERROR`      | One or more fields are invalid               |
 
 ---
 
 ## Common Errors
 
-| Status | `name`          | Description                                                    |
+| Status | `error`         | Description                                                    |
 |--------|-----------------|----------------------------------------------------------------|
 | 401    | `UNAUTHORIZED`  | Missing, malformed or invalid token, or wrong `X-Internal-Key` |
 | 401    | `TOKEN_EXPIRED` | The token has expired                                          |
 | 403    | `FORBIDDEN`     | The user's role does not have permission                       |
+| 400    | `VALIDATION_ERROR` | Invalid pagination (`page < 0` or `size` outside `1-100`)   |
 
 ---
 
@@ -213,9 +221,8 @@ All controlled errors use the same JSON structure:
 
 ```json
 {
-  "code": 404,
-  "name": "DRIVER_NOT_FOUND",
-  "description": "No driver exists with the provided ID",
+  "error": "DRIVER_NOT_FOUND",
+  "message": "Driver not found: 3b2d8f10-7c4a-4e55-b1a0-5d9e2c7f1a99",
   "timestamp": "2026-10-05T10:30:00Z"
 }
 ```
@@ -232,16 +239,17 @@ With the `demo` profile the seeder generates **20 drivers**: 3 with a license cl
 
 ## Environment Variables
 
-| Variable                     | Description                                         | Example                                      |
-|------------------------------|-----------------------------------------------------|----------------------------------------------|
-| `SPRING_DATASOURCE_URL`      | PostgreSQL connection URL                           | `jdbc:postgresql://postgres:5432/drivers_db` |
-| `SPRING_DATASOURCE_USERNAME` | Database username                                   | `fleet`                                      |
-| `SPRING_DATASOURCE_PASSWORD` | Database password                                   | `change_this_password`                       |
-| `JWT_SECRET`                 | Secret to verify JWT signatures (HS256, ≥ 32 chars) | `change_this_secret_of_at_least_32_chars`    |
-| `INTERNAL_API_KEY`           | Shared key for internal calls (`X-Internal-Key`)    | `change_this_internal_key`                   |
-| `SPRING_PROFILES_ACTIVE`     | Active Spring profile                               | `demo`                                       |
-| `DEMO_SEED`                  | Seed for deterministic demo data                    | `42`                                         |
-| `DEMO_DAYS`                  | Days of history to generate                         | `90`                                         |
+| Variable                              | Description                                         | Example                                      |
+|---------------------------------------|-----------------------------------------------------|----------------------------------------------|
+| `FLEET_CONTROL_DATASOURCE_URL_DRIVERS`  | PostgreSQL connection URL                           | `jdbc:postgresql://postgres:5432/drivers_db` |
+| `FLEET_CONTROL_DATASOURCE_USERNAME`     | Database username                                   | `fleet_app`                                  |
+| `FLEET_CONTROL_DATASOURCE_PASSWORD`     | Database password                                   | `Fleet_password`                             |
+| `JWT_SECRET`                          | Secret to verify JWT signatures (HS256, ≥ 32 chars) | `change_this_secret_of_at_least_32_chars`    |
+| `JWT_EXPIRATION`                      | Unused by this service (tokens validated by signature) | `3600000`                                 |
+| `INTERNAL_API_KEY`                    | Shared key for internal calls (`X-Internal-Key`)    | `change_this_internal_key`                   |
+| `SPRING_PROFILES_ACTIVE`              | Active Spring profile                               | `demo`                                       |
+| `DEMO_SEED`                           | Seed for deterministic demo data                    | `42`                                         |
+| `DEMO_DAYS`                           | Days of history to generate (used by other services)| `90`                                         |
 
 ---
 

@@ -1,5 +1,6 @@
 package com.fleet.control.drivers.commons.constants;
 
+/** Driver endpoint paths shared by the API contract. */
 public class ApiPathConstants {
   private ApiPathConstants() {}
 

@@ -3,6 +3,7 @@ package com.fleet.control.drivers.models.dtos.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
+/** Paginated result wrapper with content and page metadata. */
 @Schema(description = "Paginated result wrapper")
 public record PageResponse<T>(
     @Schema(description = "Page content") List<T> content,

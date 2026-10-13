@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/** Driver data returned by the API. */
 @Schema(description = "Driver data returned by the API")
 public record DriverResponse(
     @Schema(

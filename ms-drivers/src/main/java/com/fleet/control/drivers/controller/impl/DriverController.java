@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Driver endpoints: delegates to the service with the documented status codes. */
 @RestController
 @RequiredArgsConstructor
 public class DriverController implements DriverApi {

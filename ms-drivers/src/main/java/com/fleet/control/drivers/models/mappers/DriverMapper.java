@@ -8,6 +8,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
+/** Maps between driver DTOs and the driver entity. */
 @Mapper
 public interface DriverMapper {
 

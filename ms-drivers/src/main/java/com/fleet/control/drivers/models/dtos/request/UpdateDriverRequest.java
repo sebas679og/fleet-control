@@ -3,9 +3,14 @@ package com.fleet.control.drivers.models.dtos.request;
 import com.fleet.control.drivers.models.enums.DriverStatus;
 import com.fleet.control.drivers.models.enums.LicenseCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
+/** Full driver update data, including status and license expiry date. */
 @Schema(description = "Full driver update data, including status and license expiry date.")
 public record UpdateDriverRequest(
     @Schema(description = "Driver full name", example = "Jane Doe") @NotBlank @Size(max = 100)
