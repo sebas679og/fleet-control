@@ -6,6 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.fleet.control.vehicles.common.exceptions.ApiVehicleException;
+import com.fleet.control.vehicles.common.exceptions.enums.ErrorCode;
 import com.fleet.control.vehicles.common.models.dtos.request.CreateVehicleRequest;
 import com.fleet.control.vehicles.common.models.dtos.request.UpdateVehicleRequest;
 import com.fleet.control.vehicles.common.models.dtos.response.VehicleResponse;
@@ -14,8 +16,6 @@ import com.fleet.control.vehicles.common.models.enums.FuelType;
 import com.fleet.control.vehicles.common.models.enums.VehicleStatus;
 import com.fleet.control.vehicles.common.models.enums.VehicleType;
 import com.fleet.control.vehicles.common.models.mappers.VehicleMapper;
-import com.fleet.control.vehicles.common.exceptions.ApiVehicleException;
-import com.fleet.control.vehicles.common.exceptions.enums.ErrorCode;
 import com.fleet.control.vehicles.repository.VehicleRepository;
 import com.fleet.control.vehicles.service.impl.VehicleServiceImpl;
 import java.time.LocalDate;

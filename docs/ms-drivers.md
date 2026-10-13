@@ -233,7 +233,10 @@ All controlled errors use the same JSON structure:
 
 ## Demo Data
 
-With the `demo` profile the seeder generates **20 drivers**: 3 with a license close to expiring and 1 with an expired license. UUIDs are deterministic and derived from `DEMO_SEED`. It only inserts data when the table is empty.
+With the `demo` profile Flyway applies `db/demo/V2__demo_drivers.sql` with **20 drivers**
+(deterministic ids `driver-1..20`): 17 `ACTIVE`, 2 `ON_LEAVE`, 1 `SUSPENDED`; 3 licences
+expiring within 30 days and 1 expired (relative `CURRENT_DATE` offsets, so the distribution
+never rots). Other profiles only run `V1` and get an empty table.
 
 ---
 
@@ -248,7 +251,7 @@ With the `demo` profile the seeder generates **20 drivers**: 3 with a license cl
 | `JWT_EXPIRATION`                      | Unused by this service (tokens validated by signature) | `3600000`                                 |
 | `INTERNAL_API_KEY`                    | Shared key for internal calls (`X-Internal-Key`)    | `change_this_internal_key`                   |
 | `SPRING_PROFILES_ACTIVE`              | Active Spring profile                               | `demo`                                       |
-| `DEMO_SEED`                           | Seed for deterministic demo data                    | `42`                                         |
+| `DEMO_SEED`                           | Reserved for other services (this seed is static SQL) | `42`                                       |
 | `DEMO_DAYS`                           | Days of history to generate (used by other services)| `90`                                         |
 
 ---

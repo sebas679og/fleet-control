@@ -1,5 +1,6 @@
 package com.fleet.control.vehicles.service.impl;
 
+import com.fleet.control.vehicles.common.exceptions.ApiVehicleException;
 import com.fleet.control.vehicles.common.models.dtos.request.CreateVehicleRequest;
 import com.fleet.control.vehicles.common.models.dtos.request.UpdateStatusRequest;
 import com.fleet.control.vehicles.common.models.dtos.request.UpdateVehicleRequest;
@@ -9,7 +10,6 @@ import com.fleet.control.vehicles.common.models.entities.Vehicle;
 import com.fleet.control.vehicles.common.models.enums.VehicleStatus;
 import com.fleet.control.vehicles.common.models.enums.VehicleType;
 import com.fleet.control.vehicles.common.models.mappers.VehicleMapper;
-import com.fleet.control.vehicles.common.exceptions.ApiVehicleException;
 import com.fleet.control.vehicles.repository.VehicleRepository;
 import com.fleet.control.vehicles.service.VehicleService;
 import java.time.LocalDate;
