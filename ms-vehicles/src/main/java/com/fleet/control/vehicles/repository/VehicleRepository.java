@@ -22,7 +22,8 @@ public interface VehicleRepository extends JpaRepository<Vehicle, UUID> {
         SELECT v FROM Vehicle v
         WHERE (:status IS NULL OR v.status = :status)
           AND (:type   IS NULL OR v.type   = :type)
-          AND (:plate  IS NULL OR LOWER(v.plate) LIKE LOWER(CONCAT('%', :plate, '%')))
+          AND (CAST(:plate AS string) IS NULL
+            OR LOWER(v.plate) LIKE LOWER(CONCAT('%', CAST(:plate AS string), '%')))
         """)
   Page<Vehicle> search(
       @Param("status") VehicleStatus status,

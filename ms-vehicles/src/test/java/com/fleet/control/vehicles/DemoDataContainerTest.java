@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
@@ -39,5 +40,20 @@ class DemoDataContainerTest {
         2, all.stream().filter(v -> v.getStatus() == VehicleStatus.IN_MAINTENANCE).count());
     assertEquals(
         1, all.stream().filter(v -> v.getStatus() == VehicleStatus.OUT_OF_SERVICE).count());
+  }
+
+  @Test
+  void searchWithoutPlateFilterDoesNotFailOnNullParameter() {
+    var unfiltered = vehicleRepository.search(null, null, null, PageRequest.of(0, 30));
+
+    assertEquals(25, unfiltered.getTotalElements());
+  }
+
+  @Test
+  void searchWithPlateFilterMatchesCaseInsensitively() {
+    var filtered = vehicleRepository.search(null, null, "klm", PageRequest.of(0, 30));
+
+    assertEquals(1, filtered.getTotalElements());
+    assertEquals("2137KLM", filtered.getContent().get(0).getPlate());
   }
 }
