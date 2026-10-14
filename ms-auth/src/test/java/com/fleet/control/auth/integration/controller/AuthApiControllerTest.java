@@ -9,13 +9,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fleet.control.auth.common.constants.HeaderConstants;
-import com.fleet.control.auth.common.exceptions.DuplicateEmailException;
-import com.fleet.control.auth.common.exceptions.ErrorCodes;
-import com.fleet.control.auth.common.exceptions.ErrorMessages;
 import com.fleet.control.auth.common.exceptions.GlobalExceptionHandler;
-import com.fleet.control.auth.common.exceptions.InvalidCredentialsException;
-import com.fleet.control.auth.common.exceptions.TokenInvalidException;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
+import com.fleet.control.auth.common.exceptions.exception.DuplicateEmailException;
+import com.fleet.control.auth.common.exceptions.exception.InvalidCredentialsException;
+import com.fleet.control.auth.common.exceptions.exception.TokenInvalidException;
 import com.fleet.control.auth.common.path.ApiPaths;
 import com.fleet.control.auth.controller.impl.AuthApiController;
 import com.fleet.control.auth.models.dto.user.request.LoginRequest;
@@ -27,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
@@ -75,7 +74,7 @@ class AuthApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error").value(ErrorCodes.VALIDATION_ERROR))
+        .andExpect(jsonPath("$.error").value(ErrorCode.VALIDATION_ERROR.name()))
         .andExpect(jsonPath("$.details[0].field").value("username"));
   }
 
@@ -94,7 +93,7 @@ class AuthApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error").value(ErrorCodes.VALIDATION_ERROR))
+        .andExpect(jsonPath("$.error").value(ErrorCode.VALIDATION_ERROR.name()))
         .andExpect(jsonPath("$.details[0].field").value("password"));
   }
 
@@ -107,7 +106,7 @@ class AuthApiControllerTest {
             .password("StrongPass123!")
             .build();
     given(authService.createUser(any(RegisterRequest.class)))
-        .willThrow(new DuplicateEmailException(ErrorMessages.USER_ALREADY_EXISTS));
+        .willThrow(new DuplicateEmailException());
 
     mockMvc
         .perform(
@@ -115,7 +114,7 @@ class AuthApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.error").value(ErrorCodes.USER_ALREADY_EXISTS));
+        .andExpect(jsonPath("$.error").value(ErrorCode.USER_ALREADY_EXISTS.name()));
   }
 
   @Test
@@ -128,15 +127,14 @@ class AuthApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.error").value(ErrorCodes.VALIDATION_ERROR));
+        .andExpect(jsonPath("$.error").value(ErrorCode.VALIDATION_ERROR.name()));
   }
 
   @Test
   void loginWithInvalidCredentialsReturns401() throws Exception {
     var request =
         LoginRequest.builder().email("john.doe@example.com").password("WrongPass123!").build();
-    given(authService.login(any(LoginRequest.class)))
-        .willThrow(new InvalidCredentialsException(ErrorMessages.INVALID_CREDENTIALS));
+    given(authService.login(any(LoginRequest.class))).willThrow(new InvalidCredentialsException());
 
     mockMvc
         .perform(
@@ -144,7 +142,7 @@ class AuthApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isUnauthorized())
-        .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_CREDENTIALS));
+        .andExpect(jsonPath("$.error").value(ErrorCode.INVALID_CREDENTIALS.name()));
   }
 
   @Test
@@ -152,21 +150,19 @@ class AuthApiControllerTest {
     mockMvc
         .perform(post(ApiPaths.VALIDATE_ENDPOINT))
         .andExpect(status().isUnauthorized())
-        .andExpect(jsonPath("$.error").value(ErrorCodes.UNAUTHORIZED));
+        .andExpect(jsonPath("$.error").value(ErrorCode.UNAUTHORIZED.name()));
   }
 
   @Test
   void validateWithInvalidTokenReturns401Payload() throws Exception {
     given(authService.validateToken("Bearer bad-token"))
-        .willThrow(
-            new TokenInvalidException(ErrorCodes.INVALID_TOKEN, ErrorMessages.INVALID_TOKEN));
+        .willThrow(new TokenInvalidException(ErrorCode.INVALID_TOKEN, "The token is invalid"));
 
     mockMvc
         .perform(
-            post(ApiPaths.VALIDATE_ENDPOINT)
-                .header(HeaderConstants.AUTHORIZATION, "Bearer bad-token"))
+            post(ApiPaths.VALIDATE_ENDPOINT).header(HttpHeaders.AUTHORIZATION, "Bearer bad-token"))
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.valid").value(false))
-        .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_TOKEN));
+        .andExpect(jsonPath("$.error").value(ErrorCode.INVALID_TOKEN.name()));
   }
 }

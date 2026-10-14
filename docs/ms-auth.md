@@ -76,9 +76,8 @@ UserRole: MANAGER, ADMIN
 **Response `409 Conflict`** — when the email or username is already taken:
 ```json
 {
-  "code": 409,
-  "name": "USER_ALREADY_EXISTS",
-  "description": "A user with that email already exists",
+  "error": "USER_ALREADY_EXISTS",
+  "message": "A user with that email already exists",
   "timestamp": "2026-10-05T10:30:00Z"
 }
 ```
@@ -86,9 +85,8 @@ UserRole: MANAGER, ADMIN
 **Response `400 Bad Request`** — when a field does not meet the validation rules:
 ```json
 {
-  "code": 400,
-  "name": "VALIDATION_ERROR",
-  "description": "The request contains invalid fields",
+  "error": "VALIDATION_ERROR",
+  "message": "The request contains invalid fields",
   "details": [
     { "field": "password", "reason": "must contain at least one uppercase letter" }
   ],
@@ -126,9 +124,8 @@ UserRole: MANAGER, ADMIN
 **Response `401 Unauthorized`:**
 ```json
 {
-  "code": 401,
-  "name": "INVALID_CREDENTIALS",
-  "description": "Incorrect email or password",
+  "error": "INVALID_CREDENTIALS",
+  "message": "Incorrect email or password",
   "timestamp": "2026-10-05T10:30:00Z"
 }
 ```
@@ -141,9 +138,10 @@ UserRole: MANAGER, ADMIN
 
 **Description:** Validates a JWT token and returns the associated user information. Domain services validate tokens locally with `JWT_SECRET`; this endpoint is available for remote checks.
 
-**Required Header:**
+**Required Headers:**
 ```
 Authorization: Bearer <token>
+X-Internal-Key: <internal key>
 ```
 
 **Response `200 OK`:**
@@ -156,21 +154,24 @@ Authorization: Bearer <token>
 }
 ```
 
-**Response `401 Unauthorized`:**
+**Response `401 Unauthorized`** — expired or invalid token (returned as a payload, not the error contract):
 ```json
 {
-  "code": 401,
-  "name": "TOKEN_EXPIRED",
-  "description": "The token has expired",
-  "timestamp": "2026-10-05T10:30:00Z"
+  "valid": false,
+  "userId": null,
+  "username": null,
+  "role": null,
+  "error": "TOKEN_EXPIRED",
+  "message": "The token has expired"
 }
 ```
 
-| Case                     | Status | `name`          |
-|--------------------------|--------|-----------------|
-| Missing `Authorization`  | 401    | `UNAUTHORIZED`  |
-| Malformed or invalid JWT | 401    | `UNAUTHORIZED`  |
-| Expired JWT              | 401    | `TOKEN_EXPIRED` |
+| Case                          | Status | Response              |
+|-------------------------------|--------|-----------------------|
+| Missing `X-Internal-Key`      | 401    | `UNAUTHORIZED` error  |
+| Missing `Authorization`       | 401    | `UNAUTHORIZED` error  |
+| Malformed or invalid JWT      | 401    | `INVALID_TOKEN` payload |
+| Expired JWT                   | 401    | `TOKEN_EXPIRED` payload |
 
 ---
 
@@ -178,7 +179,7 @@ Authorization: Bearer <token>
 
 Other microservices can validate JWT tokens in two ways:
 
-- **Locally (default):** verify the HS256 signature with the shared `JWT_SECRET` and read the claims `sub`, `username` and `role`. The role decides access.
+- **Locally (default):** verify the HS256 signature with the shared `JWT_SECRET` and read the subject (`sub`, the user id) plus the claims `userId`, `username`, `email` and `role`. The role decides access.
 - **Remotely:** call `POST /api/auth/validate` on `ms-auth`.
 
 Internal service-to-service calls and scheduled tasks use the `X-Internal-Key` header instead of a user token; the receiving service then treats the call with `MANAGER` permissions.
@@ -197,19 +198,17 @@ All controlled errors use the same JSON structure:
 
 ```json
 {
-  "code": 409,
-  "name": "USER_ALREADY_EXISTS",
-  "description": "A user with that email already exists",
+  "error": "USER_ALREADY_EXISTS",
+  "message": "A user with that email already exists",
   "timestamp": "2026-10-05T10:30:00Z"
 }
 ```
 
-| Field         | Description                |
-|---------------|----------------------------|
-| `code`        | HTTP status code           |
-| `name`        | Business error identifier  |
-| `description` | Human-readable explanation |
-| `timestamp`   | ISO-8601 instant in UTC    |
+| Field       | Description                |
+|-------------|----------------------------|
+| `error`     | Business error identifier  |
+| `message`   | Human-readable explanation |
+| `timestamp` | ISO-8601 instant in UTC    |
 
 `VALIDATION_ERROR` adds a `details` array with `field` and `reason`.
 

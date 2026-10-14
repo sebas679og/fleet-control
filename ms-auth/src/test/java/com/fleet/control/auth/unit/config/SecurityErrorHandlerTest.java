@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fleet.control.auth.common.exceptions.ErrorCodes;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
 import com.fleet.control.auth.config.SecurityErrorHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -26,20 +26,20 @@ class SecurityErrorHandlerTest {
 
     assertEquals(401, response.getStatus());
     JsonNode body = new ObjectMapper().readTree(response.getContentAsString());
-    assertEquals(ErrorCodes.UNAUTHORIZED, body.get("error").asText());
+    assertEquals(ErrorCode.UNAUTHORIZED.name(), body.get("error").asText());
   }
 
   @Test
   void commenceWithExpiredMarkerReturnsTokenExpired() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setAttribute(SecurityErrorHandler.AUTH_ERROR_ATTRIBUTE, ErrorCodes.TOKEN_EXPIRED);
+    request.setAttribute(SecurityErrorHandler.AUTH_ERROR_ATTRIBUTE, ErrorCode.TOKEN_EXPIRED);
     MockHttpServletResponse response = new MockHttpServletResponse();
 
     handler.commence(request, response, new BadCredentialsException("bad"));
 
     assertEquals(401, response.getStatus());
     JsonNode body = new ObjectMapper().readTree(response.getContentAsString());
-    assertEquals(ErrorCodes.TOKEN_EXPIRED, body.get("error").asText());
+    assertEquals(ErrorCode.TOKEN_EXPIRED.name(), body.get("error").asText());
   }
 
   @Test
@@ -51,6 +51,6 @@ class SecurityErrorHandlerTest {
 
     assertEquals(403, response.getStatus());
     JsonNode body = new ObjectMapper().readTree(response.getContentAsString());
-    assertEquals(ErrorCodes.FORBIDDEN, body.get("error").asText());
+    assertEquals(ErrorCode.FORBIDDEN.name(), body.get("error").asText());
   }
 }

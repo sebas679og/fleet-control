@@ -313,7 +313,10 @@ All controlled errors use the same JSON structure:
 
 ## Demo Data
 
-With the `demo` profile the seeder generates **25 vehicles** of the four types and several statuses, with deterministic UUIDs derived from `DEMO_SEED` (e.g. `UUID.nameUUIDFromBytes("vehicle-7")`). It only inserts data when the table is empty.
+With the `demo` profile Flyway applies `db/demo/V2__demo_vehicles.sql` with **25 vehicles**
+(deterministic ids `vehicle-1..25`): 9 `CAR`, 10 `VAN`, 4 `TRUCK`, 2 `MOTORCYCLE`;
+14 `AVAILABLE`, 8 `IN_USE`, 2 `IN_MAINTENANCE`, 1 `OUT_OF_SERVICE`.
+Other profiles only run `V1` and get an empty table.
 
 ---
 
@@ -327,7 +330,7 @@ With the `demo` profile the seeder generates **25 vehicles** of the four types a
 | `JWT_SECRET`                 | Secret to verify JWT signatures (HS256, ≥ 32 chars) | `change_this_secret_of_at_least_32_chars`     |
 | `INTERNAL_API_KEY`           | Shared key for internal calls (`X-Internal-Key`)    | `change_this_internal_key`                    |
 | `SPRING_PROFILES_ACTIVE`     | Active Spring profile                               | `demo`                                        |
-| `DEMO_SEED`                  | Seed for deterministic demo data                    | `42`                                          |
+| `DEMO_SEED`                  | Reserved for other services (this seed is static SQL) | `42`                                        |
 | `DEMO_DAYS`                  | Days of history to generate                         | `90`                                          |
 
 ---

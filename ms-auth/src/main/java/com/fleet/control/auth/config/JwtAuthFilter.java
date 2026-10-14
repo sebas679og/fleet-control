@@ -1,8 +1,7 @@
 package com.fleet.control.auth.config;
 
-import com.fleet.control.auth.common.constants.HeaderConstants;
 import com.fleet.control.auth.common.constants.JwtConstants;
-import com.fleet.control.auth.common.exceptions.ErrorCodes;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
 import com.fleet.control.auth.service.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -10,14 +9,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.UUID;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -31,7 +31,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthFilter.class);
 
   private final JwtService jwtService;
-  private final UserDetailsService userDetailsService;
+  private final CustomUserDetailsService userDetailsService;
 
   @Override
   @SuppressWarnings("PMD.AvoidCatchingGenericException") // Intentional: filter must not fail.
@@ -41,41 +41,46 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       @NonNull FilterChain filterChain)
       throws ServletException, IOException {
 
-    final String authHeader = request.getHeader(HeaderConstants.AUTHORIZATION);
+    final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
     if (!StringUtils.hasText(authHeader) || !authHeader.startsWith(JwtConstants.BEARER_PREFIX)) {
       filterChain.doFilter(request, response);
       return;
     }
     final String jwt = authHeader.substring(JwtConstants.BEARER_PREFIX.length());
-    final String userEmail;
+    final String userId;
 
     try {
-      userEmail = jwtService.extractEmail(jwt);
+      userId = jwtService.extractUserId(jwt);
     } catch (Exception e) {
-      if (LOGGER.isWarnEnabled()) {
-        LOGGER.warn("Invalid or expired JWT: {}", e.getMessage());
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Invalid or expired JWT: {}", e.getMessage());
       }
       // An expired token throws ExpiredJwtException from the parser, so a valid
       // email here always means a live token and no further expiry check is needed.
       request.setAttribute(
           SecurityErrorHandler.AUTH_ERROR_ATTRIBUTE,
-          isExpiredCause(e) ? ErrorCodes.TOKEN_EXPIRED : ErrorCodes.UNAUTHORIZED);
+          isExpiredCause(e) ? ErrorCode.TOKEN_EXPIRED : ErrorCode.UNAUTHORIZED);
       filterChain.doFilter(request, response);
       return;
     }
 
-    if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-      // Load the full user from the database (including roles)
-      UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+    if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+      // Load the full user from the database by id (the JWT subject)
+      final UUID id;
+      try {
+        id = UUID.fromString(userId);
+      } catch (IllegalArgumentException e) {
+        request.setAttribute(SecurityErrorHandler.AUTH_ERROR_ATTRIBUTE, ErrorCode.UNAUTHORIZED);
+        filterChain.doFilter(request, response);
+        return;
+      }
+      UserDetails userDetails = this.userDetailsService.loadUserById(id);
 
       UsernamePasswordAuthenticationToken authToken =
           new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
       authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
       SecurityContextHolder.getContext().setAuthentication(authToken);
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("User {} success authenticated.", userDetails.getUsername());
-      }
     }
 
     filterChain.doFilter(request, response);

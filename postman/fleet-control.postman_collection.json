@@ -1,0 +1,1511 @@
+{
+  "info": {
+    "name": "Fleet Control",
+    "_postman_id": "fleet-control-local",
+    "description": "Comprehensive E2E Postman collection for Fleet Control microservices (Gateway, Auth, Vehicles, Drivers).\n\nFeatures:\n- Organised in 4 modules: Gateway, Auth, Vehicles, Drivers\n- Automatic token capture in 'Auth > Login (saves jwtToken)' both in environment and collection variables\n- Automatic ID capture (vehicleId, driverId) in creation requests\n- 'Validate token' endpoints connect directly to ms-auth (:8081) with X-Internal-Key as required by security architecture\n- Dynamic generators for emails/plates/licenses to support repeated full runs (Newman / Collection Runner) without 409 collisions\n- Full coverage of positive flows, filtering, validations (400), conflicts (409), not found (404), invalid state transitions (409), and missing authentication (401).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "authUrl",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "internalApiKey",
+      "value": "cambia_esta_clave_interna",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@fleetcontrol.com",
+      "type": "string"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Cambia_Admin123",
+      "type": "string"
+    },
+    {
+      "key": "jwtToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vehicleId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "driverId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Gateway",
+      "item": [
+        {
+          "name": "Health (Aggregated status)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Gateway health and downstream services liveness check (always returns 200, public, no auth required)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Health status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Gateway reports UP and services map\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.gateway).to.eql(\"UP\");",
+                  "    pm.expect(json).to.have.property(\"services\");",
+                  "    pm.expect(json.services).to.be.an(\"object\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actuator Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/actuator/health",
+            "description": "Spring Boot Actuator health endpoint on the Gateway (:8080)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Actuator health status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"UP\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Request ID Header Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Verifies that the Gateway injects the X-Request-Id header in responses."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200 and X-Request-Id header is present\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.headers.has(\"X-Request-Id\")).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Route not found -> 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/non-existent-route",
+            "description": "Verifies 404 response on an unmapped gateway path."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Route not found returns 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Auth",
+      "item": [
+        {
+          "name": "Register (New user)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var rand = Math.floor(Math.random() * 90000) + 10000;",
+                  "pm.variables.set(\"newAuthUsername\", \"user_\" + rand);",
+                  "pm.variables.set(\"newAuthEmail\", \"user_\" + rand + \"@fleetcontrol.com\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Register -> 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.role).to.eql(\"MANAGER\");",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "    pm.expect(json.email).to.eql(pm.variables.get(\"newAuthEmail\"));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{newAuthUsername}}\",\n  \"email\": \"{{newAuthEmail}}\",\n  \"password\": \"Password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Registers a new user with MANAGER role. Generates dynamic credentials per run."
+          }
+        },
+        {
+          "name": "Register duplicate email -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin_dup\",\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"Password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Attempting to register with an already existing email (admin) returns 409 Conflict."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Register duplicate -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"USER_ALREADY_EXISTS\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register validation error (weak password) -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"weak_user\",\n  \"email\": \"weak.user@fleetcontrol.com\",\n  \"password\": \"short\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Password must be at least 8 chars with an uppercase letter and a number."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Register weak password -> 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VALIDATION_ERROR\");",
+                  "    pm.expect(json).to.have.property(\"details\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (saves jwtToken)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Authenticates the seeded ADMIN user and saves the resulting token into jwtToken variable."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.token).to.be.a(\"string\");",
+                  "    pm.expect(json.tokenType).to.eql(\"Bearer\");",
+                  "    pm.expect(json.role).to.eql(\"ADMIN\");",
+                  "    pm.environment.set(\"jwtToken\", json.token);",
+                  "    pm.collectionVariables.set(\"jwtToken\", json.token);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login invalid credentials -> 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"Wrong_Password_123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Returns 401 Unauthorized with INVALID_CREDENTIALS."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login invalid credentials -> 401 Unauthorized\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"INVALID_CREDENTIALS\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login validation error (invalid email) -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"not-a-valid-email\",\n  \"password\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Returns 400 Bad Request when email or password format is invalid."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Login validation error -> 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Validate token (valid)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Internal-Key",
+                "value": "{{internalApiKey}}"
+              }
+            ],
+            "url": "{{authUrl}}/api/auth/validate",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Internal diagnostic endpoint on ms-auth (:8081). Validates JWT and returns decoded user identity."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Validate token -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.valid).to.be.true;",
+                  "    pm.expect(json.username).to.eql(\"admin\");",
+                  "    pm.expect(json.role).to.eql(\"ADMIN\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Validate invalid token -> 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Internal-Key",
+                "value": "{{internalApiKey}}"
+              }
+            ],
+            "url": "{{authUrl}}/api/auth/validate",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "invalid.jwt.token.string",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Returns 401 Unauthorized payload when the token signature is invalid."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Validate invalid token -> 401 Unauthorized\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.valid).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Validate without token -> 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Internal-Key",
+                "value": "{{internalApiKey}}"
+              }
+            ],
+            "url": "{{authUrl}}/api/auth/validate",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Returns 401 Unauthorized when Authorization header is omitted."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Validate without token -> 401 Unauthorized\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"UNAUTHORIZED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Vehicles",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/vehicles?page=0&size=20",
+            "description": "Returns a paginated list of vehicles."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"List vehicles -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.content).to.be.an(\"array\");",
+                  "    pm.expect(json).to.have.property(\"totalElements\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List filtered",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/vehicles?page=0&size=20&status=AVAILABLE&type=VAN&plate=KLM",
+            "description": "Filter vehicles by status, type and partial plate match."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"List filtered -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.content).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List invalid pagination -> 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/vehicles?page=-1&size=20",
+            "description": "Returns 400 Bad Request when page is negative."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"List invalid pagination -> 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get seed vehicle",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/vehicles/99b5202f-f181-3828-9461-3571f0f67f94",
+            "description": "Fetches a deterministic vehicle from the demo seed (vehicle-1)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Get seed vehicle -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.plate).to.eql(\"2137KLM\");",
+                  "    pm.expect(json.status).to.eql(\"AVAILABLE\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get missing vehicle -> 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/vehicles/00000000-0000-0000-0000-000000000000",
+            "description": "Returns 404 VEHICLE_NOT_FOUND when vehicle UUID is not found."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Get missing vehicle -> 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VEHICLE_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create (saves vehicleId)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var rand = Math.floor(Math.random() * 89999) + 10000;",
+                  "pm.variables.set(\"newVehiclePlate\", \"V\" + rand + \"TST\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create vehicle -> 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"AVAILABLE\");",
+                  "    pm.expect(json.odometerKm).to.eql(5);",
+                  "    pm.environment.set(\"vehicleId\", json.id);",
+                  "    pm.collectionVariables.set(\"vehicleId\", json.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/vehicles",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plate\": \"{{newVehiclePlate}}\",\n  \"make\": \"Postman\",\n  \"model\": \"Collection\",\n  \"year\": 2024,\n  \"type\": \"CAR\",\n  \"fuelType\": \"GASOLINE\",\n  \"tankCapacityL\": 50,\n  \"odometerKm\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Registers a vehicle (always in AVAILABLE status). Generates dynamic plate per run to avoid 409 collisions."
+          }
+        },
+        {
+          "name": "Create duplicate plate -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/vehicles",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plate\": \"2137KLM\",\n  \"make\": \"Postman\",\n  \"model\": \"Dup\",\n  \"year\": 2024,\n  \"type\": \"CAR\",\n  \"fuelType\": \"GASOLINE\",\n  \"tankCapacityL\": 50,\n  \"odometerKm\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Returns 409 VEHICLE_ALREADY_EXISTS when using a plate that already exists."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create duplicate plate -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VEHICLE_ALREADY_EXISTS\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create validation error (bad year/capacity) -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/vehicles",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plate\": \"BAD-YEAR\",\n  \"make\": \"Postman\",\n  \"model\": \"Bad\",\n  \"year\": 1850,\n  \"type\": \"CAR\",\n  \"fuelType\": \"GASOLINE\",\n  \"tankCapacityL\": -10,\n  \"odometerKm\": -1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Returns 400 VALIDATION_ERROR with validation failure details."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create validation error -> 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VALIDATION_ERROR\");",
+                  "    pm.expect(json).to.have.property(\"details\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/vehicles/{{vehicleId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"make\": \"Postman\",\n  \"model\": \"Collection v2\",\n  \"year\": 2024,\n  \"type\": \"CAR\",\n  \"fuelType\": \"HYBRID\",\n  \"tankCapacityL\": 55\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Updates descriptive data of the created vehicle (requires {{vehicleId}})."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Update vehicle -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.model).to.eql(\"Collection v2\");",
+                  "    pm.expect(json.fuelType).to.eql(\"HYBRID\");",
+                  "    pm.expect(json.tankCapacityL).to.eql(55);\n",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update missing vehicle -> 404",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/vehicles/00000000-0000-0000-0000-000000000000",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"make\": \"Postman\",\n  \"model\": \"Collection v2\",\n  \"year\": 2024,\n  \"type\": \"CAR\",\n  \"fuelType\": \"HYBRID\",\n  \"tankCapacityL\": 55\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Returns 404 VEHICLE_NOT_FOUND when updating non-existent vehicle ID."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Update missing vehicle -> 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VEHICLE_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change status (AVAILABLE -> IN_USE)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/vehicles/{{vehicleId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_USE\",\n  \"odometerKm\": 100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Transitions vehicle from AVAILABLE to IN_USE and advances odometer to 100."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Change status -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"IN_USE\");",
+                  "    pm.expect(json.odometerKm).to.eql(100);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change status disallowed transition -> 409",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/vehicles/{{vehicleId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_MAINTENANCE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "IN_USE -> IN_MAINTENANCE is disallowed (returns 409 INVALID_STATUS_TRANSITION)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Disallowed transition -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"INVALID_STATUS_TRANSITION\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change status lower odometer -> 409",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/vehicles/{{vehicleId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_USE\",\n  \"odometerKm\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Odometer cannot decrease below the current value (100 -> 50 returns 409 INVALID_ODOMETER)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Lower odometer -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"INVALID_ODOMETER\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change status missing vehicle -> 404",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/vehicles/00000000-0000-0000-0000-000000000000/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_USE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Returns 404 VEHICLE_NOT_FOUND when updating status of non-existent vehicle ID."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Change status missing vehicle -> 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VEHICLE_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List without token -> 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/vehicles?page=0&size=1",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Returns 401 UNAUTHORIZED when Bearer token is omitted."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"List without token -> 401 Unauthorized\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"UNAUTHORIZED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{jwtToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "4. Drivers",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/drivers?page=0&size=20",
+            "description": "Returns a paginated list of drivers."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"List drivers -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.content).to.be.an(\"array\");",
+                  "    pm.expect(json).to.have.property(\"totalElements\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List filtered",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/drivers?page=0&size=20&status=ACTIVE&licenseExpiringInDays=30",
+            "description": "Filter drivers by status (ACTIVE) and license expiring in <= 30 days."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"List filtered -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.content).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List invalid pagination -> 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/drivers?page=-1&size=20",
+            "description": "Returns 400 Bad Request when page is negative."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"List invalid pagination -> 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get seed driver",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/drivers/a6efc71c-384f-3cb0-8f2c-6d0d82e754fe",
+            "description": "Fetches a deterministic driver from the demo seed (driver-1)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Get seed driver -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.licenseNumber).to.eql(\"DL-DEMO-0001\");",
+                  "    pm.expect(json.status).to.eql(\"ACTIVE\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get missing driver -> 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/drivers/00000000-0000-0000-0000-000000000000",
+            "description": "Returns 404 DRIVER_NOT_FOUND when driver UUID is not found."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Get missing driver -> 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"DRIVER_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create (saves driverId)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var rand = Math.floor(Math.random() * 89999) + 10000;",
+                  "pm.variables.set(\"newDriverLicense\", \"DL-PM-\" + rand);",
+                  "pm.variables.set(\"newDriverEmail\", \"driver.\" + rand + \"@example.com\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create driver -> 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"ACTIVE\");",
+                  "    pm.expect(json.licenseCategory).to.eql(\"B\");",
+                  "    pm.environment.set(\"driverId\", json.id);",
+                  "    pm.collectionVariables.set(\"driverId\", json.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/drivers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Tester\",\n  \"email\": \"{{newDriverEmail}}\",\n  \"phone\": \"+34 600 444 555\",\n  \"licenseNumber\": \"{{newDriverLicense}}\",\n  \"licenseCategory\": \"B\",\n  \"licenseExpiresAt\": \"2028-05-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Registers a driver (always created in ACTIVE status). Generates dynamic license & email per run to avoid 409 collisions."
+          }
+        },
+        {
+          "name": "Create duplicate license -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/drivers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Dup\",\n  \"email\": \"postman.dup@example.com\",\n  \"phone\": \"+34 600 444 556\",\n  \"licenseNumber\": \"DL-DEMO-0001\",\n  \"licenseCategory\": \"B\",\n  \"licenseExpiresAt\": \"2028-05-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Returns 409 DRIVER_ALREADY_EXISTS when using a license number that already exists."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create duplicate license -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"DRIVER_ALREADY_EXISTS\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create past expiry -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/drivers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Past\",\n  \"email\": \"postman.past@example.com\",\n  \"phone\": \"+34 600 444 557\",\n  \"licenseNumber\": \"DL-PM-PAST\",\n  \"licenseCategory\": \"B\",\n  \"licenseExpiresAt\": \"2020-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Returns 400 VALIDATION_ERROR when license expiration date is in the past."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create past expiry -> 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create invalid email -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/drivers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Invalid Email\",\n  \"email\": \"invalid-email-string\",\n  \"phone\": \"+34 600 444 558\",\n  \"licenseNumber\": \"DL-PM-BADMAIL\",\n  \"licenseCategory\": \"B\",\n  \"licenseExpiresAt\": \"2028-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Returns 400 VALIDATION_ERROR when email is not formatted properly."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create invalid email -> 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VALIDATION_ERROR\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update + renew license",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get(\"newDriverLicense\")) {",
+                  "    pm.variables.set(\"newDriverLicense\", \"DL-PM-0001\");",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Update driver -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"ON_LEAVE\");",
+                  "    pm.expect(json.licenseCategory).to.eql(\"C\");",
+                  "    pm.expect(json.licenseExpiresAt).to.eql(\"2029-01-01\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/drivers/{{driverId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Tester Updated\",\n  \"email\": \"postman.driver.updated@example.com\",\n  \"phone\": \"+34 600 444 555\",\n  \"licenseNumber\": \"{{newDriverLicense}}\",\n  \"licenseCategory\": \"C\",\n  \"licenseExpiresAt\": \"2029-01-01\",\n  \"status\": \"ON_LEAVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Updates driver data, sets status to ON_LEAVE and renews license expiration (uses {{driverId}})."
+          }
+        },
+        {
+          "name": "Update missing driver -> 404",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/drivers/00000000-0000-0000-0000-000000000000",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Missing\",\n  \"email\": \"missing@example.com\",\n  \"phone\": \"+34 600 444 555\",\n  \"licenseNumber\": \"DL-MISSING\",\n  \"licenseCategory\": \"B\",\n  \"licenseExpiresAt\": \"2029-01-01\",\n  \"status\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Returns 404 DRIVER_NOT_FOUND when driver ID does not exist."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Update missing driver -> 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"DRIVER_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update duplicate license -> 409",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/drivers/{{driverId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Tester\",\n  \"email\": \"postman.dup.license@example.com\",\n  \"phone\": \"+34 600 444 555\",\n  \"licenseNumber\": \"DL-DEMO-0002\",\n  \"licenseCategory\": \"B\",\n  \"licenseExpiresAt\": \"2029-01-01\",\n  \"status\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Returns 409 DRIVER_ALREADY_EXISTS when updating with another driver's license number."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Update duplicate license -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"DRIVER_ALREADY_EXISTS\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create without token -> 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/drivers",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Returns 401 UNAUTHORIZED when Bearer token is omitted."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create without token -> 401 Unauthorized\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"UNAUTHORIZED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{jwtToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}

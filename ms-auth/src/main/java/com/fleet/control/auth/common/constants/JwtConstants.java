@@ -11,7 +11,8 @@ public class JwtConstants {
 
   public static final String CLAIM_USER_ID = "userId";
   public static final String CLAIM_USERNAME = "username";
+  public static final String CLAIM_EMAIL = "email";
   public static final String CLAIM_ROLE = "role";
 
-  public static final String EXPIRES_IN_SECONDS_DEFAULT = "3600L";
+  public static final long EXPIRES_IN_SECONDS_DEFAULT = 3600L;
 }

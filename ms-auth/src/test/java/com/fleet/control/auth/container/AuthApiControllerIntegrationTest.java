@@ -1,7 +1,6 @@
 package com.fleet.control.auth.container;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,6 +29,9 @@ class AuthApiControllerIntegrationTest extends AbstractIntegrationTest {
 
   @Value("${jwt.secret}")
   private String jwtSecret;
+
+  @Value("${internal.api-key}")
+  private String internalApiKey;
 
   private RestTestClient restClient;
 
@@ -97,6 +99,7 @@ class AuthApiControllerIntegrationTest extends AbstractIntegrationTest {
             .post()
             .uri(ApiPaths.VALIDATE_ENDPOINT)
             .headers(headers -> headers.setBearerAuth(token))
+            .header("X-Internal-Key", internalApiKey)
             .exchange()
             .returnResult(String.class);
 
@@ -106,17 +109,50 @@ class AuthApiControllerIntegrationTest extends AbstractIntegrationTest {
   }
 
   @Test
+  void validateWithoutInternalKeyReturns401() {
+    postJson(ApiPaths.REGISTER_ENDPOINT, registerBody("it_six", "it.six@example.com"));
+    String token = login("it.six@example.com", "StrongPass123!");
+
+    EntityExchangeResult<String> result =
+        restClient
+            .post()
+            .uri(ApiPaths.VALIDATE_ENDPOINT)
+            .headers(headers -> headers.setBearerAuth(token))
+            .exchange()
+            .returnResult(String.class);
+
+    assertEquals(HttpStatus.UNAUTHORIZED, result.getStatus());
+    assertEquals("UNAUTHORIZED", body(result).get("error").asText());
+  }
+
+  @Test
+  void validateWithWrongInternalKeyReturns401() {
+    EntityExchangeResult<String> result =
+        restClient
+            .post()
+            .uri(ApiPaths.VALIDATE_ENDPOINT)
+            .headers(headers -> headers.setBearerAuth("bad-token"))
+            .header("X-Internal-Key", "wrong-key")
+            .exchange()
+            .returnResult(String.class);
+
+    assertEquals(HttpStatus.UNAUTHORIZED, result.getStatus());
+    assertEquals("UNAUTHORIZED", body(result).get("error").asText());
+  }
+
+  @Test
   void validateInvalidTokenReturns401() {
     EntityExchangeResult<String> result =
         restClient
             .post()
             .uri(ApiPaths.VALIDATE_ENDPOINT)
             .headers(headers -> headers.setBearerAuth("bad-token"))
+            .header("X-Internal-Key", internalApiKey)
             .exchange()
             .returnResult(String.class);
 
     assertEquals(HttpStatus.UNAUTHORIZED, result.getStatus());
-    assertFalse(body(result).get("valid").asBoolean());
+    assertEquals("UNAUTHORIZED", body(result).get("error").asText());
   }
 
   @Test
