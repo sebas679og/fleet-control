@@ -159,13 +159,13 @@ DriverStatus:    ACTIVE, ON_LEAVE, SUSPENDED
 
 | Status | `error`                 | Description                                      |
 |--------|-------------------------|--------------------------------------------------|
-| 409    | `DRIVER_ALREADY_EXIST`  | A driver with that license number already exists |
+| 409    | `DRIVER_ALREADY_EXISTS`  | A driver with that license number already exists |
 | 400    | `VALIDATION_ERROR`      | One or more fields are invalid                   |
 
 **Response `409 Conflict`:**
 ```json
 {
-  "error": "DRIVER_ALREADY_EXIST",
+  "error": "DRIVER_ALREADY_EXISTS",
   "message": "Driver already exists with license number: B-5120377",
   "timestamp": "2026-10-05T10:30:00Z"
 }
@@ -199,7 +199,7 @@ DriverStatus:    ACTIVE, ON_LEAVE, SUSPENDED
 | Status | `error`                 | Description                                  |
 |--------|-------------------------|----------------------------------------------|
 | 404    | `DRIVER_NOT_FOUND`      | No driver exists with the provided ID        |
-| 409    | `DRIVER_ALREADY_EXIST`  | The license number belongs to another driver |
+| 409    | `DRIVER_ALREADY_EXISTS`  | The license number belongs to another driver |
 | 400    | `VALIDATION_ERROR`      | One or more fields are invalid               |
 
 ---

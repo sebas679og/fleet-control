@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
@@ -48,5 +49,20 @@ class DemoDataContainerTest {
                         && !d.getLicenseExpiresAt().isAfter(today.plusDays(30)))
             .count());
     assertEquals(1, all.stream().filter(d -> d.getLicenseExpiresAt().isBefore(today)).count());
+  }
+
+  @Test
+  void searchWithEachFilterCombinationMatchesSeedDistribution() {
+    var page = PageRequest.of(0, 30);
+
+    assertEquals(20, driverRepository.search(null, null, page).getTotalElements());
+    assertEquals(17, driverRepository.search(DriverStatus.ACTIVE, null, page).getTotalElements());
+    assertEquals(
+        4, driverRepository.search(null, LocalDate.now().plusDays(30), page).getTotalElements());
+    assertEquals(
+        3,
+        driverRepository
+            .search(DriverStatus.ACTIVE, LocalDate.now().plusDays(30), page)
+            .getTotalElements());
   }
 }

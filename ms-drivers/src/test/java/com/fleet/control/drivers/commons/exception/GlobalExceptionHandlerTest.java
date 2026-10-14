@@ -39,7 +39,7 @@ class GlobalExceptionHandlerTest {
 
     assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertEquals(ErrorCode.DRIVER_ALREADY_EXIST.name(), response.getBody().error());
+    assertEquals(ErrorCode.DRIVER_ALREADY_EXISTS.name(), response.getBody().error());
   }
 
   @Test

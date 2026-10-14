@@ -30,7 +30,7 @@ class DriverExceptionsTest {
 
     DriverAlreadyExistsException ex = new DriverAlreadyExistsException(license);
 
-    assertEquals(ErrorCode.DRIVER_ALREADY_EXIST, ex.getCode());
+    assertEquals(ErrorCode.DRIVER_ALREADY_EXISTS, ex.getCode());
     assertEquals(HttpStatus.CONFLICT, ex.getStatus());
     assertTrue(ex.getMessage().contains(license));
   }

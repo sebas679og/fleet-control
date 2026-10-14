@@ -21,7 +21,8 @@ public interface DriverRepository extends JpaRepository<Driver, UUID> {
       """
             SELECT d FROM Driver d
             WHERE (:status IS NULL OR d.status = :status)
-              AND (:expiresBefore IS NULL OR d.licenseExpiresAt <= :expiresBefore)
+              AND (CAST(:expiresBefore AS LocalDate) IS NULL
+                OR d.licenseExpiresAt <= :expiresBefore)
             """)
   Page<Driver> search(
       @Param("status") DriverStatus status,

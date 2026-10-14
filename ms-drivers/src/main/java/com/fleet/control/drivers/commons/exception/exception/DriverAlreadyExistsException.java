@@ -13,7 +13,7 @@ public class DriverAlreadyExistsException extends ApiException {
    */
   public DriverAlreadyExistsException(String licenseNumber) {
     super(
-        ErrorCode.DRIVER_ALREADY_EXIST,
+        ErrorCode.DRIVER_ALREADY_EXISTS,
         HttpStatus.CONFLICT,
         "Driver already exists with license number: " + licenseNumber);
   }

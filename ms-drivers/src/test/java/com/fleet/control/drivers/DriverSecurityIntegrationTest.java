@@ -176,7 +176,7 @@ class DriverSecurityIntegrationTest {
     // Duplicate license -> 409
     EntityExchangeResult<String> duplicate = postDriver(createBody(license), internalApiKey);
     assertEquals(HttpStatus.CONFLICT, duplicate.getStatus());
-    assertEquals("DRIVER_ALREADY_EXIST", body(duplicate).get("error").asText());
+    assertEquals("DRIVER_ALREADY_EXISTS", body(duplicate).get("error").asText());
 
     // Unknown id -> 404
     EntityExchangeResult<String> missing = getWithInternalKey(BASE + "/" + UUID.randomUUID());
