@@ -6,6 +6,12 @@ public class ValidationException extends RuntimeException {
   private final String field;
   private final String reason;
 
+  /**
+   * Creates a single-field validation failure.
+   *
+   * @param field offending field name
+   * @param reason human-readable reason
+   */
   public ValidationException(String field, String reason) {
     super(reason);
     this.field = field;

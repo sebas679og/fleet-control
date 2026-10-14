@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 /** Thrown when a registration email is already in use. */
 public class DuplicateEmailException extends ApiException {
 
+  /** Creates the exception with the default conflict message. */
   public DuplicateEmailException() {
     super(
         ErrorCode.USER_ALREADY_EXISTS,

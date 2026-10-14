@@ -109,9 +109,12 @@ public class AuthServiceImpl implements AuthService {
   }
 
   private static ErrorCode resolveErrorCode(String error) {
+    if (error == null) {
+      return ErrorCode.INVALID_TOKEN;
+    }
     try {
       return ErrorCode.valueOf(error);
-    } catch (IllegalArgumentException | NullPointerException e) {
+    } catch (IllegalArgumentException e) {
       return ErrorCode.INVALID_TOKEN;
     }
   }

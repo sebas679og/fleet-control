@@ -30,20 +30,35 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-  // Domain errors (401, 403, 409...) — also covers the custom AccessDeniedException.
+  /**
+   * Handles domain errors keeping their status and code.
+   *
+   * @param ex the business failure
+   * @return the error response with the exception status
+   */
   @ExceptionHandler(ApiException.class)
   public ResponseEntity<ErrorResponse> handleApi(ApiException ex) {
     return buildResponse(ex.getCode(), ex.getMessage(), ex.getStatus());
   }
 
-  // Invalid tokens during explicit validation keep the TokenPayload contract (401).
+  /**
+   * Handles invalid tokens during explicit validation keeping the TokenPayload contract.
+   *
+   * @param ex the token failure
+   * @return 401 with the TokenPayload contract
+   */
   @ExceptionHandler(TokenInvalidException.class)
   public ResponseEntity<TokenPayload> handleTokenInvalid(TokenInvalidException ex) {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
         .body(new TokenPayload(false, null, null, null, ex.getError(), ex.getMessage()));
   }
 
-  // Expired JWTs keep the TokenPayload contract (401).
+  /**
+   * Handles expired JWTs keeping the TokenPayload contract.
+   *
+   * @param ex the expiration failure
+   * @return 401 with the TokenPayload contract
+   */
   @ExceptionHandler(ExpiredJwtException.class)
   public ResponseEntity<TokenPayload> handleExpiredJwt(ExpiredJwtException ex) {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -52,21 +67,36 @@ public class GlobalExceptionHandler {
                 false, null, null, null, ErrorCode.TOKEN_EXPIRED.name(), "The token has expired"));
   }
 
-  // Spring Security authentication failures (401).
+  /**
+   * Handles Spring Security authentication failures.
+   *
+   * @param ex the authentication failure
+   * @return 401 with the error contract
+   */
   @ExceptionHandler(BadCredentialsException.class)
   public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
     return buildResponse(
         ErrorCode.INVALID_CREDENTIALS, "Invalid credentials", HttpStatus.UNAUTHORIZED);
   }
 
-  // Generic authentication failures (401).
+  /**
+   * Handles generic authentication failures.
+   *
+   * @param ex the authentication failure
+   * @return 401 with the error contract
+   */
   @ExceptionHandler(AuthenticationException.class)
   public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
     return buildResponse(
         ErrorCode.UNAUTHORIZED, "Missing or invalid authentication token", HttpStatus.UNAUTHORIZED);
   }
 
-  // Spring Security access denials (403).
+  /**
+   * Handles Spring Security access denials.
+   *
+   * @param ex the access denial
+   * @return 403 with the error contract
+   */
   @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
   public ResponseEntity<ErrorResponse> handleSpringAccessDenied(
       org.springframework.security.access.AccessDeniedException ex) {
@@ -74,7 +104,12 @@ public class GlobalExceptionHandler {
         ErrorCode.FORBIDDEN, "Access denied: insufficient permissions", HttpStatus.FORBIDDEN);
   }
 
-  // ValidationException raised manually from services (400 with details).
+  /**
+   * Handles manual validation errors with field details.
+   *
+   * @param ex the validation failure
+   * @return 400 with the field and reason
+   */
   @ExceptionHandler(ValidationException.class)
   public ResponseEntity<ErrorResponse> handleValidation(ValidationException ex) {
     return buildDetailsResponse(
@@ -84,7 +119,12 @@ public class GlobalExceptionHandler {
         HttpStatus.BAD_REQUEST);
   }
 
-  // @Valid on DTOs (400 with details).
+  /**
+   * Handles bean validation errors with field details.
+   *
+   * @param ex the binding failure
+   * @return 400 with every field error
+   */
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleBeanValidation(MethodArgumentNotValidException ex) {
     List<ErrorResponse.Violation> details =
@@ -98,21 +138,37 @@ public class GlobalExceptionHandler {
         HttpStatus.BAD_REQUEST);
   }
 
-  // Malformed type (invalid UUID or enum value) (400).
+  /**
+   * Handles malformed bodies such as invalid UUID or enum values.
+   *
+   * @param ex the deserialization failure
+   * @return 400 with the error contract
+   */
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<ErrorResponse> handleUnreadable(HttpMessageNotReadableException ex) {
     return buildResponse(
         ErrorCode.VALIDATION_ERROR, "Request contains invalid fields", HttpStatus.BAD_REQUEST);
   }
 
-  // Missing Authorization header (401).
+  /**
+   * Handles a missing Authorization header.
+   *
+   * @param ex the missing header failure
+   * @return 401 with the error contract
+   */
   @ExceptionHandler(MissingRequestHeaderException.class)
   public ResponseEntity<ErrorResponse> handleMissingHeader(MissingRequestHeaderException ex) {
     return buildResponse(
         ErrorCode.UNAUTHORIZED, "Missing required header: Authorization", HttpStatus.UNAUTHORIZED);
   }
 
-  // Fallback (500). Unknown paths are rethrown so Spring renders 404 instead of 500.
+  /**
+   * Handles unexpected failures, rethrowing unknown paths so Spring renders 404 instead of 500.
+   *
+   * @param ex the unexpected failure
+   * @return 500 with the error contract
+   * @throws Exception rethrown when the path does not exist
+   */
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) throws Exception {
     if (ex instanceof NoResourceFoundException) {
