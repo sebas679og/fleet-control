@@ -3,7 +3,7 @@ package com.fleet.control.vehicles;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fleet.control.vehicles.common.models.enums.VehicleStatus;
+import com.fleet.control.vehicles.models.enums.VehicleStatus;
 import com.fleet.control.vehicles.repository.VehicleRepository;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

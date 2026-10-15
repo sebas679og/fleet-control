@@ -1,8 +1,8 @@
 package com.fleet.control.vehicles.repository;
 
-import com.fleet.control.vehicles.common.models.entities.Vehicle;
-import com.fleet.control.vehicles.common.models.enums.VehicleStatus;
-import com.fleet.control.vehicles.common.models.enums.VehicleType;
+import com.fleet.control.vehicles.models.entities.Vehicle;
+import com.fleet.control.vehicles.models.enums.VehicleStatus;
+import com.fleet.control.vehicles.models.enums.VehicleType;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -8,14 +8,15 @@ import static org.mockito.Mockito.verify;
 
 import com.fleet.control.vehicles.common.exceptions.ApiVehicleException;
 import com.fleet.control.vehicles.common.exceptions.enums.ErrorCode;
-import com.fleet.control.vehicles.common.models.dtos.request.CreateVehicleRequest;
-import com.fleet.control.vehicles.common.models.dtos.request.UpdateVehicleRequest;
-import com.fleet.control.vehicles.common.models.dtos.response.VehicleResponse;
-import com.fleet.control.vehicles.common.models.entities.Vehicle;
-import com.fleet.control.vehicles.common.models.enums.FuelType;
-import com.fleet.control.vehicles.common.models.enums.VehicleStatus;
-import com.fleet.control.vehicles.common.models.enums.VehicleType;
-import com.fleet.control.vehicles.common.models.mappers.VehicleMapper;
+import com.fleet.control.vehicles.models.dtos.request.CreateVehicleRequest;
+import com.fleet.control.vehicles.models.dtos.request.UpdateVehicleRequest;
+import com.fleet.control.vehicles.models.dtos.response.VehicleResponse;
+import com.fleet.control.vehicles.models.entities.Vehicle;
+import com.fleet.control.vehicles.models.enums.FuelType;
+import com.fleet.control.vehicles.models.enums.VehicleStatus;
+import com.fleet.control.vehicles.models.enums.VehicleType;
+import com.fleet.control.vehicles.models.mappers.VehicleMapper;
+import com.fleet.control.vehicles.models.mappers.VehicleMapperImpl;
 import com.fleet.control.vehicles.repository.VehicleRepository;
 import com.fleet.control.vehicles.service.impl.VehicleServiceImpl;
 import java.time.LocalDate;
@@ -152,7 +153,7 @@ class VehicleServiceImplTest {
   @Test
   void updateKeepsPlateStatusAndOdometer() {
     // Real mapper: proves @Mapping(ignore) on plate/status/odometer is honoured.
-    var realMapper = new com.fleet.control.vehicles.common.models.mappers.VehicleMapperImpl();
+    var realMapper = new VehicleMapperImpl();
     var serviceWithRealMapper = new VehicleServiceImpl(vehicleRepository, realMapper);
     UUID id = UUID.randomUUID();
     var stored =
