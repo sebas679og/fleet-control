@@ -1,12 +1,12 @@
 package com.fleet.control.vehicles.service;
 
-import com.fleet.control.vehicles.common.models.dtos.request.CreateVehicleRequest;
-import com.fleet.control.vehicles.common.models.dtos.request.UpdateStatusRequest;
-import com.fleet.control.vehicles.common.models.dtos.request.UpdateVehicleRequest;
-import com.fleet.control.vehicles.common.models.dtos.response.PageResponse;
-import com.fleet.control.vehicles.common.models.dtos.response.VehicleResponse;
-import com.fleet.control.vehicles.common.models.enums.VehicleStatus;
-import com.fleet.control.vehicles.common.models.enums.VehicleType;
+import com.fleet.control.vehicles.models.dtos.request.CreateVehicleRequest;
+import com.fleet.control.vehicles.models.dtos.request.UpdateStatusRequest;
+import com.fleet.control.vehicles.models.dtos.request.UpdateVehicleRequest;
+import com.fleet.control.vehicles.models.dtos.response.PageResponse;
+import com.fleet.control.vehicles.models.dtos.response.VehicleResponse;
+import com.fleet.control.vehicles.models.enums.VehicleStatus;
+import com.fleet.control.vehicles.models.enums.VehicleType;
 import java.util.UUID;
 
 /** Service contract for vehicle operations. */
