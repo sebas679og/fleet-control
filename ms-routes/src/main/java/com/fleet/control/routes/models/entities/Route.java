@@ -1,7 +1,14 @@
 package com.fleet.control.routes.models.entities;
 
 import com.fleet.control.routes.models.enums.RouteStatus;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -9,11 +16,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+/** Persistent route planned with a vehicle and a driver. */
 @Entity
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -44,7 +54,7 @@ public class Route {
   private Integer estimatedDurationMin;
 
   @Column(name = "planned_distance_km", nullable = false, precision = 10, scale = 2)
-  private Integer plannedDistanceKm;
+  private BigDecimal plannedDistanceKm;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 20)

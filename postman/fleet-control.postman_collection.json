@@ -2,7 +2,7 @@
   "info": {
     "name": "Fleet Control",
     "_postman_id": "fleet-control-local",
-    "description": "Comprehensive E2E Postman collection for Fleet Control microservices (Gateway, Auth, Vehicles, Drivers).\n\nFeatures:\n- Organised in 4 modules: Gateway, Auth, Vehicles, Drivers\n- Automatic token capture in 'Auth > Login (saves jwtToken)' both in environment and collection variables\n- Automatic ID capture (vehicleId, driverId) in creation requests\n- 'Validate token' endpoints connect directly to ms-auth (:8081) with X-Internal-Key as required by security architecture\n- Dynamic generators for emails/plates/licenses to support repeated full runs (Newman / Collection Runner) without 409 collisions\n- Full coverage of positive flows, filtering, validations (400), conflicts (409), not found (404), invalid state transitions (409), and missing authentication (401).",
+    "description": "Comprehensive E2E Postman collection for Fleet Control microservices (Gateway, Auth, Vehicles, Drivers, Routes).\n\nFeatures:\n- Organised in 5 modules: Gateway, Auth, Vehicles, Drivers, Routes\n- Automatic token capture in 'Auth > Login (saves jwtToken)' both in environment and collection variables\n- Automatic ID capture (vehicleId, driverId, routeId) in creation requests\n- 'Validate token' endpoints connect directly to ms-auth (:8081) with X-Internal-Key as required by security architecture\n- Dynamic generators for emails/plates/licenses to support repeated full runs (Newman / Collection Runner) without 409 collisions\n- Full coverage of positive flows, filtering, validations (400), conflicts (409), not found (404), invalid state transitions (409), and missing authentication (401).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -43,6 +43,11 @@
     },
     {
       "key": "driverId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "routeId",
       "value": "",
       "type": "string"
     }
@@ -1486,6 +1491,763 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Create without token -> 401 Unauthorized\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"UNAUTHORIZED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{jwtToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "5. Routes",
+      "item": [
+        {
+          "name": "Create (saves routeId)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/routes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"99b5202f-f181-3828-9461-3571f0f67f94\",\n  \"driverId\": \"a6efc71c-384f-3cb0-8f2c-6d0d82e754fe\",\n  \"origin\": \"Madrid\",\n  \"destination\": \"Barcelona\",\n  \"plannedStart\": \"{{newRouteStart}}\",\n  \"estimatedDurationMin\": 300,\n  \"plannedDistanceKm\": 352.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Plans a route with a demo AVAILABLE car and an eligible driver. Random future start per run to avoid 409 collisions."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var days = 30 + Math.floor(Math.random() * 30);",
+                  "pm.variables.set(\"newRouteStart\", new Date(Date.now() + days * 864e5).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create route -> 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"PLANNED\");",
+                  "    pm.expect(json.origin).to.eql(\"Madrid\");",
+                  "    pm.environment.set(\"routeId\", json.id);",
+                  "    pm.collectionVariables.set(\"routeId\", json.id);",
+                  "    pm.collectionVariables.set(\"routeStart\", json.plannedStart);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create overlapping route -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/routes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"99b5202f-f181-3828-9461-3571f0f67f94\",\n  \"driverId\": \"a6efc71c-384f-3cb0-8f2c-6d0d82e754fe\",\n  \"origin\": \"Madrid\",\n  \"destination\": \"Barcelona\",\n  \"plannedStart\": \"{{routeStart}}\",\n  \"estimatedDurationMin\": 300,\n  \"plannedDistanceKm\": 352.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Reuses the vehicle, driver and start saved by 'Create' so the overlap guard rejects it with 409 ROUTE_OVERLAP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Overlapping route -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"ROUTE_OVERLAP\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create with IN_USE vehicle -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/routes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"bb54b559-0459-3379-96d4-f65f9c81db1f\",\n  \"driverId\": \"cd421fbc-23d7-3a98-9a82-2a77dbe0822b\",\n  \"origin\": \"Madrid\",\n  \"destination\": \"Valladolid\",\n  \"plannedStart\": \"{{newRouteStart}}\",\n  \"estimatedDurationMin\": 150,\n  \"plannedDistanceKm\": 193.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "vehicle-16 is IN_USE in the demo seed, so planning is rejected with 409 VEHICLE_NOT_AVAILABLE."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"newRouteStart\", new Date(Date.now() + 3 * 864e5).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"IN_USE vehicle -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VEHICLE_NOT_AVAILABLE\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create with suspended driver -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/routes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"78265825-828f-3015-94d0-572bb1607f91\",\n  \"driverId\": \"56fe200f-3886-35ff-9ec1-efbc07d27e2e\",\n  \"origin\": \"Madrid\",\n  \"destination\": \"Sevilla\",\n  \"plannedStart\": \"{{newRouteStart}}\",\n  \"estimatedDurationMin\": 330,\n  \"plannedDistanceKm\": 530.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "driver-20 is SUSPENDED in the demo seed, so planning is rejected with 409 DRIVER_NOT_ELIGIBLE."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"newRouteStart\", new Date(Date.now() + 3 * 864e5).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Suspended driver -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"DRIVER_NOT_ELIGIBLE\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create with expired licence -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/routes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"9b976d57-1507-3b3d-b4cc-6d3739199e63\",\n  \"driverId\": \"333ade4d-0283-35d3-a079-9eb47d6b37d1\",\n  \"origin\": \"Sevilla\",\n  \"destination\": \"Madrid\",\n  \"plannedStart\": \"{{newRouteStart}}\",\n  \"estimatedDurationMin\": 330,\n  \"plannedDistanceKm\": 530.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "driver-17 has an expired licence in the demo seed, so planning is rejected with 409 DRIVER_NOT_ELIGIBLE."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"newRouteStart\", new Date(Date.now() + 3 * 864e5).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Expired licence -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"DRIVER_NOT_ELIGIBLE\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create with missing vehicle -> 404",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/routes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"00000000-0000-0000-0000-000000000001\",\n  \"driverId\": \"a6efc71c-384f-3cb0-8f2c-6d0d82e754fe\",\n  \"origin\": \"Madrid\",\n  \"destination\": \"Barcelona\",\n  \"plannedStart\": \"{{newRouteStart}}\",\n  \"estimatedDurationMin\": 300,\n  \"plannedDistanceKm\": 352.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Unknown vehicleId is mapped from the downstream 404 to 404 VEHICLE_NOT_FOUND."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"newRouteStart\", new Date(Date.now() + 3 * 864e5).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Missing vehicle -> 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VEHICLE_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create with missing driver -> 404",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/routes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"78265825-828f-3015-94d0-572bb1607f91\",\n  \"driverId\": \"00000000-0000-0000-0000-000000000002\",\n  \"origin\": \"Madrid\",\n  \"destination\": \"Barcelona\",\n  \"plannedStart\": \"{{newRouteStart}}\",\n  \"estimatedDurationMin\": 300,\n  \"plannedDistanceKm\": 352.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Unknown driverId is mapped from the downstream 404 to 404 DRIVER_NOT_FOUND."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"newRouteStart\", new Date(Date.now() + 3 * 864e5).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Missing driver -> 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"DRIVER_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create validation error (blank origin/duration) -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/routes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"78265825-828f-3015-94d0-572bb1607f91\",\n  \"driverId\": \"b68130b4-021d-3595-8143-756111db88c1\",\n  \"origin\": \"\",\n  \"destination\": \"Barcelona\",\n  \"plannedStart\": \"{{newRouteStart}}\",\n  \"estimatedDurationMin\": 0,\n  \"plannedDistanceKm\": 352.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Blank origin and zero duration fail bean validation with 400 VALIDATION_ERROR and field details."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"newRouteStart\", new Date(Date.now() + 3 * 864e5).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Create validation error -> 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VALIDATION_ERROR\");",
+                  "    pm.expect(json).to.have.property(\"details\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/routes?page=0&size=20",
+            "description": "Returns a paginated list of routes."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"List routes -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.content).to.be.an(\"array\");",
+                  "    pm.expect(json).to.have.property(\"totalElements\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List filtered by status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/routes?status=PLANNED&page=0&size=20",
+            "description": "Filters routes by status; every element must be PLANNED."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Filtered list -> 200 OK with only PLANNED\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.content.length).to.be.above(0);",
+                  "    json.content.forEach(function (r) { pm.expect(r.status).to.eql(\"PLANNED\"); });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List invalid pagination -> 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/routes?page=-1&size=20",
+            "description": "Negative page fails validation with 400 VALIDATION_ERROR and details."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Invalid pagination -> 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VALIDATION_ERROR\");",
+                  "    pm.expect(json.details[0].field).to.eql(\"page\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get created route",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/routes/{{routeId}}",
+            "description": "Fetches the route created by 'Create (saves routeId)'."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Get created route -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.id).to.eql(pm.variables.get(\"routeId\"));",
+                  "    pm.expect(json.status).to.eql(\"PLANNED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Start created route",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/routes/{{routeId}}/start",
+            "description": "Starts the route created by 'Create': route goes IN_PROGRESS, vehicle goes IN_USE, startedAt and startOdometerKm are stored."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Start route -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.id).to.eql(pm.variables.get(\"routeId\"));",
+                  "    pm.expect(json.status).to.eql(\"IN_PROGRESS\");",
+                  "    pm.expect(json.startedAt).to.be.a(\"string\");",
+                  "    pm.expect(json.startOdometerKm).to.be.a(\"number\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Start again -> 409",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/routes/{{routeId}}/start",
+            "description": "A route that is no longer PLANNED cannot start again: 409 INVALID_ROUTE_STATE."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Second start -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"INVALID_ROUTE_STATE\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complete created route",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/routes/{{routeId}}/complete",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actualDistanceKm\": 632.10,\n  \"notes\": \"Postman run\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Completes the route: endOdometerKm is computed server-side, vehicle returns to AVAILABLE with the updated odometer."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Complete route -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"COMPLETED\");",
+                  "    pm.expect(json.endedAt).to.be.a(\"string\");",
+                  "    pm.expect(json.actualDistanceKm).to.eql(632.10);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complete again -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/routes/{{routeId}}/complete",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actualDistanceKm\": 10.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "A route that is no longer IN_PROGRESS cannot complete again: 409 INVALID_ROUTE_STATE."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Second complete -> 409 Conflict\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"INVALID_ROUTE_STATE\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Start missing route -> 404",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/routes/00000000-0000-0000-0000-000000000003/start",
+            "description": "Unknown route id returns 404 ROUTE_NOT_FOUND."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Start missing -> 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"ROUTE_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complete validation error -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/routes/{{routeId}}/complete",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Missing actualDistanceKm fails bean validation with 400 VALIDATION_ERROR (validation runs before the state check)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Complete invalid -> 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"VALIDATION_ERROR\");",
+                  "    pm.expect(json).to.have.property(\"details\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get seed route",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/routes/8ecea952-9d00-3d65-a0de-1934f44e7c7d",
+            "description": "Fetches a deterministic route from the demo seed (route-1, COMPLETED)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Get seed route -> 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.origin).to.eql(\"Madrid\");",
+                  "    pm.expect(json.destination).to.eql(\"Zaragoza\");",
+                  "    pm.expect(json.status).to.eql(\"COMPLETED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get missing route -> 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/routes/00000000-0000-0000-0000-000000000003",
+            "description": "Unknown route id returns 404 ROUTE_NOT_FOUND."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Missing route -> 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.error).to.eql(\"ROUTE_NOT_FOUND\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List without token -> 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/routes?page=0&size=1",
+            "description": "Returns 401 UNAUTHORIZED when Bearer token is omitted.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"List without token -> 401 Unauthorized\", function () {",
                   "    pm.response.to.have.status(401);",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.error).to.eql(\"UNAUTHORIZED\");",

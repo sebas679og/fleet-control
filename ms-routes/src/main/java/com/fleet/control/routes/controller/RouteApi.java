@@ -157,6 +157,10 @@ public interface RouteApi {
         @ApiResponse(
             responseCode = "409",
             description = "Route not in progress or odometer conflict",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(
+            responseCode = "503",
+            description = "Downstream service unavailable; the route stays IN_PROGRESS",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
       })
   @PostMapping(ApiPathConstants.COMPLETE)

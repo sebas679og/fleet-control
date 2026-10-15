@@ -5,6 +5,7 @@ import com.fleet.control.routes.models.entities.Route;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+/** Maps between route entities and DTOs. */
 @Mapper
 public interface RouteMapper {
 

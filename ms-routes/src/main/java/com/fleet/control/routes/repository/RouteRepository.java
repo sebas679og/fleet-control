@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/** Route persistence with filtered search and overlap prevention. */
 @Repository
 public interface RouteRepository extends JpaRepository<Route, UUID> {
 

@@ -10,6 +10,7 @@ import com.fleet.control.routes.models.enums.RouteStatus;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/** Route planning, execution and history operations. */
 public interface RouteService {
 
   RouteResponse create(CreateRouteRequest request, UUID createdBy);
