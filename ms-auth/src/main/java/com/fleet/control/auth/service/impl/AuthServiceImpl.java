@@ -1,0 +1,121 @@
+package com.fleet.control.auth.service.impl;
+
+import com.fleet.control.auth.common.constants.JwtConstants;
+import com.fleet.control.auth.common.exceptions.enums.ErrorCode;
+import com.fleet.control.auth.common.exceptions.exception.DuplicateEmailException;
+import com.fleet.control.auth.common.exceptions.exception.InvalidCredentialsException;
+import com.fleet.control.auth.common.exceptions.exception.TokenInvalidException;
+import com.fleet.control.auth.models.dto.token.request.TokenPayload;
+import com.fleet.control.auth.models.dto.token.response.TokenResponse;
+import com.fleet.control.auth.models.dto.user.request.LoginRequest;
+import com.fleet.control.auth.models.dto.user.request.RegisterRequest;
+import com.fleet.control.auth.models.dto.user.response.RegisterResponse;
+import com.fleet.control.auth.models.entities.UserEntity;
+import com.fleet.control.auth.models.mappers.UserMapper;
+import com.fleet.control.auth.repository.UserEntityRepository;
+import com.fleet.control.auth.service.AuthService;
+import com.fleet.control.auth.service.JwtService;
+import java.time.Instant;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/** Application service for user registration, login and token validation. */
+@Service
+@RequiredArgsConstructor
+public class AuthServiceImpl implements AuthService {
+
+  private final UserEntityRepository userEntityRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final JwtService jwtService;
+  private final AuthenticationManager authenticationManager;
+  private final UserMapper userMapper;
+
+  /**
+   * Registers a new user with the {@code MANAGER} role and a BCrypt password.
+   *
+   * @param registerRequest the registration input
+   * @return the created user data
+   */
+  @Override
+  @Transactional
+  public RegisterResponse createUser(RegisterRequest registerRequest) {
+    if (userEntityRepository.existsByEmailOrUsername(
+        registerRequest.email(), registerRequest.username())) {
+      throw new DuplicateEmailException();
+    }
+
+    UserEntity user = userMapper.toUserEntity(registerRequest);
+    user.setPassword(passwordEncoder.encode(registerRequest.password()));
+    user.setCreatedAt(Instant.now());
+    user.setUpdatedAt(Instant.now());
+
+    UserEntity saved = userEntityRepository.save(user);
+
+    return new RegisterResponse(
+        saved.getId().toString(),
+        saved.getUsername(),
+        saved.getEmail(),
+        saved.getRole().name(),
+        saved.getCreatedAt());
+  }
+
+  /**
+   * Authenticates a user and issues a JWT valid for one hour.
+   *
+   * @param loginRequest the login credentials
+   * @return the token response with user data
+   */
+  @Override
+  public TokenResponse login(LoginRequest loginRequest) {
+    try {
+      Authentication authentication =
+          authenticationManager.authenticate(
+              new UsernamePasswordAuthenticationToken(
+                  loginRequest.email(), loginRequest.password()));
+
+      UserEntity user = (UserEntity) authentication.getPrincipal();
+
+      return jwtService.generateToken(
+          user.getEmail(), user.getId().toString(), user.getUsername(), user.getRole().name());
+    } catch (BadCredentialsException e) {
+      throw new InvalidCredentialsException();
+    }
+  }
+
+  /**
+   * Validates a bearer token and returns the embedded user data.
+   *
+   * @param authHeader the {@code Authorization} header value
+   * @return the token payload when the token is valid
+   */
+  @Override
+  public TokenPayload validateToken(String authHeader) {
+    if (authHeader == null || authHeader.isBlank()) {
+      throw new TokenInvalidException(
+          ErrorCode.INVALID_TOKEN, "Missing or invalid authentication token");
+    }
+    String token = authHeader.replace(JwtConstants.BEARER_PREFIX, "").trim();
+    TokenPayload payload = jwtService.validateToken(token);
+    if (!payload.valid()) {
+      throw new TokenInvalidException(resolveErrorCode(payload.error()), payload.message());
+    }
+    return payload;
+  }
+
+  private static ErrorCode resolveErrorCode(String error) {
+    if (error == null) {
+      return ErrorCode.INVALID_TOKEN;
+    }
+    try {
+      return ErrorCode.valueOf(error);
+    } catch (IllegalArgumentException e) {
+      return ErrorCode.INVALID_TOKEN;
+    }
+  }
+}

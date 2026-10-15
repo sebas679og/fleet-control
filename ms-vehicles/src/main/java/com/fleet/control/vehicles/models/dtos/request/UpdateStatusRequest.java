@@ -1,0 +1,12 @@
+package com.fleet.control.vehicles.models.dtos.request;
+
+import com.fleet.control.vehicles.models.enums.VehicleStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+
+/** Request payload to update a vehicle status. */
+@Schema(description = "Request payload to update a vehicle status")
+public record UpdateStatusRequest(
+    @NotNull(message = "status must not be null") VehicleStatus status,
+    @PositiveOrZero(message = "odometerKm must be 0 or greater") Integer odometerKm) {}
