@@ -159,6 +159,8 @@ services:
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change-me-internal-key}
       DEMO_SEED: ${DEMO_SEED:-42}
       DEMO_DAYS: ${DEMO_DAYS:-90}
+      VEHICLES_SERVICE_URL: ${VEHICLES_SERVICE_URL}
+      DRIVERS_SERVICE_URL: ${DRIVERS_SERVICE_URL}
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8085/actuator/health || exit 1" ]
       interval: 10s
@@ -229,6 +231,7 @@ services:
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change-me-internal-key}
       DEMO_SEED: ${DEMO_SEED:-42}
       DEMO_DAYS: ${DEMO_DAYS:-90}
+      VEHICLES_SERVICE_URL: ${VEHICLES_SERVICE_URL}
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8087/actuator/health || exit 1" ]
       interval: 10s

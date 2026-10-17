@@ -1,6 +1,7 @@
 package com.fleet.control.vehicles.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fleet.control.vehicles.common.exceptions.dto.ErrorResponse;
 import com.fleet.control.vehicles.common.exceptions.enums.ErrorCode;
@@ -18,7 +19,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDeniedHandler {
 
-  private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+  private final ObjectMapper objectMapper =
+      new ObjectMapper()
+          .registerModule(new JavaTimeModule())
+          .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
   /**
    * Handles unauthenticated requests with the common error contract.

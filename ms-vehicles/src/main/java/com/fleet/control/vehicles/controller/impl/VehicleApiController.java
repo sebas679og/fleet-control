@@ -28,12 +28,14 @@ public class VehicleApiController implements VehicleApi {
   private final VehicleService vehicleService;
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<VehicleResponse> create(@RequestBody @Valid CreateVehicleRequest request) {
     VehicleResponse response = vehicleService.create(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<PageResponse<VehicleResponse>> list(
       @RequestParam(required = false) VehicleStatus status,
       @RequestParam(required = false, name = "type") VehicleType vehicleType,
@@ -44,11 +46,13 @@ public class VehicleApiController implements VehicleApi {
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<VehicleResponse> getById(@PathVariable UUID vehicleId) {
     return ResponseEntity.ok(vehicleService.getById(vehicleId));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<VehicleResponse> update(
       @PathVariable UUID vehicleId, @RequestBody @Valid UpdateVehicleRequest request) {
     return ResponseEntity.ok(vehicleService.update(vehicleId, request));
