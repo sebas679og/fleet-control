@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -75,6 +76,21 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleUnreadable(HttpMessageNotReadableException ex) {
     return ResponseEntity.badRequest()
         .body(ErrorResponse.of(ErrorCode.VALIDATION_ERROR, "Request contains invalid fields"));
+  }
+
+  // 403 method security (missing MANAGER/ADMIN role)
+  /**
+   * Handles method security denials.
+   *
+   * @param ex the authorization failure
+   * @return 403 with a generic code
+   */
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  public ResponseEntity<ErrorResponse> handleAuthorizationDenied(AuthorizationDeniedException ex) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(
+            ErrorResponse.of(
+                ErrorCode.FORBIDDEN, "You do not have permission to perform this action"));
   }
 
   // Fallback

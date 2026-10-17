@@ -14,6 +14,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Route endpoints: delegates to the service with the documented status codes. */
@@ -23,12 +24,14 @@ public class RouteController implements RouteApi {
   private final RouteService routeService;
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<RouteResponse> create(CreateRouteRequest request) {
     // TODO: resolve createdBy from JWT sub once SecurityConfig lands.
     return ResponseEntity.status(HttpStatus.CREATED).body(routeService.create(request, null));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<PageResponse<RouteResponse>> list(
       UUID vehicle,
       UUID driver,
@@ -41,21 +44,25 @@ public class RouteController implements RouteApi {
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<RouteResponse> getById(UUID routeId) {
     return ResponseEntity.ok(routeService.getById(routeId));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<RouteResponse> start(UUID routeId) {
     return ResponseEntity.ok(routeService.start(routeId));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<RouteResponse> complete(UUID routeId, CompleteRouteRequest request) {
     return ResponseEntity.ok(routeService.complete(routeId, request));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<RouteStatsResponse> stats(
       LocalDate from, LocalDate to, Granularity granularity, UUID vehicle) {
     return ResponseEntity.ok(routeService.stats(from, to, granularity, vehicle));

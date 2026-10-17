@@ -11,6 +11,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Driver endpoints: delegates to the service with the documented status codes. */
@@ -20,24 +21,28 @@ public class DriverController implements DriverApi {
   private final DriverService driverService;
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<DriverResponse> create(CreateDriverRequest request) {
 
     return ResponseEntity.status(HttpStatus.CREATED).body(driverService.create(request));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<PageResponse<DriverResponse>> list(
       DriverStatus status, Integer licenseExpiringInDays, int page, int size) {
     return ResponseEntity.ok(driverService.list(status, licenseExpiringInDays, page, size));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<DriverResponse> getById(UUID driverId) {
 
     return ResponseEntity.ok(driverService.getById(driverId));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<DriverResponse> update(UUID driverId, UpdateDriverRequest request) {
 
     return ResponseEntity.ok(driverService.update(driverId, request));

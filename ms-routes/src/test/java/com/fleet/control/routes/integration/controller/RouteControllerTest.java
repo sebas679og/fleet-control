@@ -17,6 +17,7 @@ import com.fleet.control.routes.commons.exception.exception.RouteNotFoundExcepti
 import com.fleet.control.routes.commons.exception.exception.RouteOverlapException;
 import com.fleet.control.routes.commons.exception.exception.ServiceUnavailableException;
 import com.fleet.control.routes.commons.exception.exception.VehicleNotAvailableException;
+import com.fleet.control.routes.config.SecurityErrorHandler;
 import com.fleet.control.routes.controller.impl.RouteController;
 import com.fleet.control.routes.models.dtos.request.CompleteRouteRequest;
 import com.fleet.control.routes.models.dtos.request.CreateRouteRequest;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,6 +46,7 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @WebMvcTest(RouteController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(SecurityErrorHandler.class)
 class RouteControllerTest {
 
   @Autowired private MockMvc mockMvc;
